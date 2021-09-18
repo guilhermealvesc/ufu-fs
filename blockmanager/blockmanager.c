@@ -3,17 +3,6 @@
 #include <fcntl.h>
 #include "blockmanager.h"
 
-// dummy code
-// int main() {
-//   int penFd = open("/dev/sdc1", O_RDONLY);
-//   if(!penFd) {
-//     printf("deu zebra\n");
-//     return -1;
-//   }
-//   printf("deu bão\n");
-//   return 0;
-// }
-
 /* 
 4000 -> 5000
 5000 - 4000 = 1000

@@ -3,7 +3,4 @@
 #define BLOCK_MBR -3
 
 // FAT fs, pointer vector 'BLOCKS' sized
-typedef struct {
-  const int BLOCKS;
-  int* FAT;
-} FAT;
+typedef int* FAT;

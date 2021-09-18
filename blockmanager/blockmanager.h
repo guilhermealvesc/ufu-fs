@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "./types.h"
+#include "types.h"
 
 
 // reads block BLOCK_SIZE from pen_fd at position 'block_num' and copies it to 'buf'
