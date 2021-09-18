@@ -1,19 +1,12 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <math.h>
 #include <fcntl.h>
-#include <errno.h>
+#include "./utils/utils.h"
 #include "./blockmanager/blockmanager.h"
 #include "./faloc/faloc.h"
 #define GET_BLOCKS(b) ceil((double)b/BLOCK_SIZE)
-
-// int fat_flag_block(int * fat, int block, int flag) {
-//   if(!fat) return 0;
-//   fat[block] = flag;
-//   return 1;
-// }
 
 typedef struct {
   const int BYTES;
@@ -23,7 +16,6 @@ typedef struct {
 } MBR;
 
 void throw_e (const char* message);
-FAT fat_init(int blocks);
 
 int main (int argc, char** argv) {
   printf("\e[1;1H\e[2J");
@@ -52,22 +44,6 @@ int main (int argc, char** argv) {
   int i;
   for(i = 0; i < R_BLOCK_SIZE; i++)
     fat_flag_block(MBRI.FA_TABLE, i, BLOCK_MBR);
+  // fat_show(MBRI.FA_TABLE, MBRI.BLOCKS);
   return 0;
-}
-
-void throw_e (const char* message) {
-  printf("\e[1;1H\e[2J");
-  printf("%s\n", message);
-  printf("ERR: '%s'\n", strerror(errno));
-  exit(errno);
-}
-
-FAT fat_init(int blocks) {
-  int i;
-  FAT fat = (FAT) malloc(blocks * sizeof(int));
-  if(fat) {
-    for(i = 0; i < blocks; i++) 
-      fat_flag_block(fat, i, BLOCK_FREE);
-  }
-  return fat;
 }
