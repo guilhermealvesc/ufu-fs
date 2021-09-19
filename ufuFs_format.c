@@ -6,7 +6,6 @@
 #include "./utils/utils.h"
 #include "./blockmanager/blockmanager.h"
 #include "./faloc/faloc.h"
-#define GET_BLOCKS(b) ceil((double)b/BLOCK_SIZE)
 
 typedef struct {
   const int BYTES;
