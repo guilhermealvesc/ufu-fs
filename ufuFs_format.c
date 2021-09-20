@@ -26,8 +26,6 @@ int main (int argc, char** argv) {
   int penFd;
   if((penFd = open(argv[1], O_RDWR)) == -1)
     throw_e("Couldn't open file at path...");
-  void* BUF = malloc(BLOCK_SIZE);
-  read_block(penFd, 0, BUF);
   // get volume size
   off_t VOL_SIZE = lseek(penFd, 0, SEEK_END);
   // printf("VOL_SIZE: %.1lfGB\n", VOL_SIZE/1000000000.0);
