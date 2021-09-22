@@ -9,8 +9,8 @@ typedef struct table* Table;
 enum F_TYPES {D, F, L};
 
 struct table {
-  Table curr; // "."
-  Table prev; // ".."
+  Table curr; // current/atual, equivalente a "."
+  Table prev; // previous/anterior, equivalente a".."
   File table[H_TABLE_SIZE];
 };
 

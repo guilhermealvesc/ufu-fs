@@ -61,6 +61,20 @@ int set_file(Table tb, File* file) {
   }
 }
 
+int valid_file(File* file){ //1 = valido, 0 = invalido
+  int i;
+  if(file->name == NULL) return 0;
+    else for(i = 0; file->name[i] != '\0'; i++)
+            if(file->name[i] == '.') return 0; //nosso padrão não terá '.' em nome de pastas (podemos mudar dps)
+  if(file->bytes == NULL || file->bytes < 0) return 0;
+    else if(file->create_date == NULL) return 0;
+            else if(file->last_access != file->create_date) return 0; //na hora da criacao eles devem ser iguais
+                  else if(file->ftype == NULL) return 0;
+    return 1;
+    //dentro do pdf a data é especificada para estar nos intervalos de dia[1-31]/mês[1-12]/[1900-2999]
+    //porém como é uma string que varia, deveriam ser feitas muitas verificações para saber se está neste período
+    //mas só de verificar se é NULL acho o suficiente pq a função strftime não costuma falhar
+}
 
 unsigned long djb2Hash(unsigned char *str) {
   unsigned long hash = H_TABLE_SIZE;
