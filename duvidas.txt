@@ -1,0 +1,22 @@
+Dúvidas - Rivalino
+
+1. Utilizar uma tabela hash dentro do filesystem 
+para comportar as os Files de um diretório? 
+Se sim, o tamanho dessa tabela hash tem que ser fixo?
+
+2. Em questão de performance, pode ser usadas funções recursivas 
+(estamos usando na tabela FAT para poder ler um arquivo)? 
+
+3. No linux há as syscall mount, a qual pega a árvore de um filesystem 
+correspondente e anexa na árvore do fs do SO. Pelo nosso entendimento,
+isso não será feito, porque é necessário o ufuFs_shell para acesso
+ao sistema de arquivos virtual (árvore de diretórios). Porém, é requisitado
+que haja rotinas open, read, write, close e seek. Estas rotinas vão acessar
+o pen drive ou os arquivos do pen drive? 
+Se for os arquivos do pendrive, como o usuário dessas rotinas de lib compartilhada
+saberá a estrutura da árvore de diretórios, para passar ao open qual arquivo abrir?
+
+4. Data pode ser antes de epoch?
+
+5. (Caso não abra arquivos) Quais seriam os protótipos das funções de lib compartilhada (open, read, write, close, seek)?
+
