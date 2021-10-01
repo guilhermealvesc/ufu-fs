@@ -1,7 +1,7 @@
 #include "types.h"
 #define validBlock(fat, block) (fat && block >= 0)
 
-FAT fat_init(int blocks);
+int* fat_init(int blocks);
 int fat_show(int * fat, int blocks);
 int fat_flag_block(int* fat, int block, int flag);
 

@@ -2,5 +2,7 @@
 #define BLOCK_FREE -2  //bloco livre
 #define BLOCK_MBR -3  //bloco reservado
 
-// FAT fs, pointer vector 'BLOCKS' sized
-typedef int* FAT;
+typedef struct {
+  const int BLOCKS;
+  int* fat;
+} FAT;

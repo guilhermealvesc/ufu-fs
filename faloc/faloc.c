@@ -35,10 +35,10 @@ int fat_show(int * fat, int blocks) {
   printf("\n");
 }
 
-FAT fat_init(int blocks) {
+int* fat_init(int blocks) {
   int i;
   if(blocks < 0) return NULL;
-  FAT fat = (FAT) malloc(blocks * sizeof(int));
+  int* fat = (int*) malloc(blocks * sizeof(int));
   if(fat) {
     for(i = 0; i < blocks; i++) 
       fat_flag_block(fat, i, BLOCK_FREE);

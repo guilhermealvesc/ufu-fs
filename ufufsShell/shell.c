@@ -10,7 +10,6 @@
 
 
 int main(){
-    
     /*
         le a string, até achar um espaço, então procura a palavra na tabela
         se achar a palavra chama uma função que executa o respectivo comando, se não 
