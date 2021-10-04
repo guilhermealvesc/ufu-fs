@@ -46,33 +46,18 @@ int* fat_init(int blocks) {
   return fat;
 }
 
-int fat_get_file_recursive(int pen_fd, int* fat, int block, void* buf) {
-  switch(fat[block]) {
-    case BLOCK_END:
-      read_block(pen_fd, block, buf);
-      return 1;
-    case BLOCK_FREE:
+int fat_get_file(int pen_fd, int* fat, int block_ini, void* buf) {
+  if(!validBlock(fat, block_ini) || fat[block_ini] < BLOCK_END || !buf)
+    return 0;
+  int block, i;
+  for(i = 0, block = block_ini; fat[block] > BLOCK_END; i++, block = fat[block]) {
+
+    if(fat[fat[block]] >= BLOCK_END && read_block(pen_fd, block, buf + (i * BLOCK_SIZE)) == -1) {
       return 0;
-    case BLOCK_MBR:
-      return 0;
-    default:
-      if(!read_block(pen_fd, block, buf)) return 0;
-      return fat_get_file_recursive(pen_fd, fat, fat[block], buf + BLOCK_SIZE);
+    }
   }
+  return 1;
 }
-
-// int fat_get_file(int pen_fd, int* fat, int block_ini, void* buf) {
-//   if(!validBlock(fat, block_ini) || fat[block_ini] < BLOCK_END || !buf)
-//     return 0;
-//   int block, i;
-//   for(i = 0, block = block_ini; fat[block] > BLOCK_END; i++, block = fat[block]) {
-
-//     if(fat[fat[block]] >= BLOCK_END && read_block(pen_fd, block, buf + (i * BLOCK_SIZE)) == -1) {
-//       return 0;
-//     }
-//   }
-//   return 1;
-// }
 
 
 int fat_set_file(int pen_fd, int* fat, int BLOCKS, int file_size, void* buf) {
