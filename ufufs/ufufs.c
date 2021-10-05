@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "./ufufs.h"
 // usa o fd do SO
 int penFd = -1;
@@ -12,12 +14,16 @@ struct fileDesc {
   int* blocosArquivo;
   unsigned int offset;
 };
-
-
+// int       int    int         vet    vet
+// [MAGIC_N, BYTES, BLOCK_SIZE, FILES, FAT]
 int ufufs_mount(const char* filePath) {
   //tenta abrir o pen drive 
   //atribui o fd na abertura para var global
+  penFd = open(filePath, O_RDWR);
+  if(penFd < 0) return 0; //adicionar errno
+  read(penFd, );
   //puxar os arquivos importantes, FAT, METADADOS, INFORMAÇÕES
+
   //coloca fat, metadados, informações na área compartilhada
   //retorna se deu erro ou não
 }

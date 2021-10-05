@@ -2,7 +2,4 @@
 #define BLOCK_FREE -2  //bloco livre
 #define BLOCK_MBR -3  //bloco reservado
 
-typedef struct {
-  const int BLOCKS;
-  int* fat;
-} FAT;
+typedef int* FAT;

@@ -46,51 +46,41 @@ int* fat_init(int blocks) {
   return fat;
 }
 
-int fat_get_file(int pen_fd, int* fat, int block_ini, void* buf) {
-  if(!validBlock(fat, block_ini) || fat[block_ini] < BLOCK_END || !buf)
+int fat_getf_block(int pen_fd, int* fat, int inode, unsigned int index, void* buf) {
+  if(pen_fd < 0 || !fat || inode < 0 || fat[inode] < BLOCK_END || index < 0 || buf == NULL) 
     return 0;
-  int block, i;
-  for(i = 0, block = block_ini; fat[block] > BLOCK_END; i++, block = fat[block]) {
-
-    if(fat[fat[block]] >= BLOCK_END && read_block(pen_fd, block, buf + (i * BLOCK_SIZE)) == -1) {
-      return 0;
-    }
+  unsigned int i = 0;
+  int block = inode;
+  while(i < index && fat[block] > BLOCK_END) {
+    block = fat[block];
+    i++;
   }
-  return 1;
+  // foi para memória livre ou mbr
+  if(block < BLOCK_END) return 0;
+  // block == BLOCK_END
+  return read_block(pen_fd, block, buf);
 }
 
-
-int fat_set_file(int pen_fd, int* fat, int BLOCKS, int file_size, void* buf) {
-  if(!fat || BLOCKS < 0 || file_size < 0 || !buf)
+int fat_writef_block(int pen_fd, int* fat, int inode, unsigned int index, void* buf) {
+  if(pen_fd < 0 || !fat || inode < 0 || fat[inode] < BLOCK_END || index < 0 || buf == NULL) 
     return 0;
-  int i, saved, BLOCKS_FILE = GET_BLOCKS(file_size), last;
-
-  for(i = 0, saved = 0; i < BLOCKS && saved < BLOCKS_FILE; i++) {
-    if(fat[i] == BLOCK_FREE) {
-      if(write_block(pen_fd, i, buf + (saved * BLOCK_SIZE)) != -1) {
-        if(saved && !fat_flag_block(fat, last, i)) {
-          //'for' para desfazer o erro
-          return 0;
-        }
-        last = i;
-        saved++;
-      } else return 0;
-    }
+  unsigned int i = 0;
+  int block = inode;
+  while(i < index && fat[block] > BLOCK_END) {
+    block = fat[block];
+    i++;
   }
-
-  if(i == BLOCKS && saved < BLOCK_SIZE) {
-    // PEN DRIVE FULL
-  }
-
-  return 1;
+  // foi para memória livre ou mbr
+  if(block < BLOCK_END) return 0;
+  // block == BLOCK_END
+  return write_block(pen_fd, block, buf);
 }
 
-
-int fat_delete_file(int pen_fd, int* fat, int block_ini) {
-  if(!fat || block_ini < 0 || fat[block_ini] < BLOCK_END)
+int fat_delete_file(int pen_fd, int* fat, int inode) {
+  if(pen_fd < 0 || !fat || inode < 0 || fat[inode] < BLOCK_END)
     return 0;
   int block, block_aux;
-  for(block = block_ini; block != BLOCK_END; block = block_aux) {
+  for(block = inode; fat[block] != BLOCK_END; block = block_aux) {
     block_aux = fat[block];
     fat[block] = BLOCK_FREE;
   }
