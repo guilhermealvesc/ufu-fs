@@ -21,7 +21,7 @@ int ufufs_mount(const char* filePath) {
   //atribui o fd na abertura para var global
   penFd = open(filePath, O_RDWR);
   if(penFd < 0) return 0; //adicionar errno
-  read(penFd, );
+  // read(penFd, );
   //puxar os arquivos importantes, FAT, METADADOS, INFORMAÇÕES
 
   //coloca fat, metadados, informações na área compartilhada

@@ -15,10 +15,10 @@ int ufufs_close(FileDescriptor fd);
 
 int ufufs_seek(FileDescriptor fd, int offset);
 
-typedef struct {
-  const int MAGIC_N;
-  const int BYTES;
-  const int BLOCKS;
-  FILES FILES_TABLE;
-  FAT FAT;
-} MBR;
+// typedef struct {
+//   const int MAGIC_N;
+//   const int BYTES;
+//   const int BLOCKS;
+//   FILES FILES_TABLE;
+//   FAT FAT;
+// } MBR;

@@ -48,18 +48,19 @@ int main (int argc, char** argv) {
   if(!(MBRI.FAT = fat_init(MBRI.BLOCKS)))
     throw_e("Couldn't alloc FAT...");  
   // saber qual tamanho que será reservado, e reservá-lo no FAT
-  size_t table_size = sizeof(MBRI.FILES_TABLE) / sizeof(MBRI.FILES_TABLE[0]); //table_size terá o tamanho do vetor, se FILES_TABLE[3], table_size = 3;
-  int R_AREA_SIZE = sizeof(const int) * 3 + (table_size * sizeof(MBRI.FILES_TABLE)) +  (MBRI.BLOCKS * sizeof(int));
+  // size_t table_size = sizeof(MBRI.FILES_TABLE) / sizeof(MBRI.FILES_TABLE[0]); //table_size terá o tamanho do vetor, se FILES_TABLE[3], table_size = 3;
+  int R_AREA_SIZE = sizeof(const int) * 3 + (MBRI.BLOCKS * sizeof(struct file)) + (MBRI.BLOCKS * sizeof(int));
   int R_BLOCK_SIZE = GET_BLOCKS(R_AREA_SIZE);
-
+  printf("R_AREA_SIZE: %.1lfMB\nR_BLOCK_SIZE: %d\nBLOCKS: %d\n", R_AREA_SIZE/1000000.0, R_BLOCK_SIZE, MBRI.BLOCKS);
   int i;
   // ESCREVER OS 3 INTEIROS E OS 2 VETORES
-  for(i = 0; i < R_BLOCK_SIZE; i++) {
-    //write_block(penFd, i, (&MBRI) + BLOCK_SIZE * i);
-    //fat_flag_block(MBRI.FAT, i, BLOCK_MBR);
-    write_block(penFD,i,)
-    //fazer um loop para cada elemento da struct para escrever tudo
-    //caso faça tudo neste for pode ocorrer de escrever mais de uma vez cada um
-  }
+  // for(i = 0; i < R_BLOCK_SIZE; i++) {
+  //   //write_block(penFd, i, (&MBRI) + BLOCK_SIZE * i);
+
+  //   fat_flag_block(MBRI.FAT, i, BLOCK_MBR);
+  //   write_block(penFD,i,)
+  //   //fazer um loop para cada elemento da struct para escrever tudo
+  //   //caso faça tudo neste for pode ocorrer de escrever mais de uma vez cada um
+  // }
   return 0;
 }
