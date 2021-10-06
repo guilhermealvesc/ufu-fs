@@ -1,15 +1,17 @@
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <fcntl.h>
+#include "../blockmanager/blockmanager.h"
 #include "./ufufs.h"
 #define MAX_FDS 30
 
 // usa o fd do SO
 typedef struct {
-  int inode;
-  int qntBlocks;
-  int* blocosArquivo; //[block, block, block]
-  unsigned int offset;
+  unsigned int inode;
+  unsigned int qntBytes;
+  void* blocks; //[block, block, block]
+  size_t offset;
 } FD;
 
 typedef struct {
@@ -29,10 +31,8 @@ MountData md = {-1, NULL};
 // int       int    int         vet    vet
 // [MAGIC_N, BYTES, BLOCK_SIZE, FILES, FAT]
 int ufufs_mount(const char* filePath) {
-  //tenta abrir o pen drive 
-  //atribui o fd na abertura para var global
   md.penFd = open(filePath, O_RDWR);
-  if(penFd < 0) return 0; //adicionar errno
+  if(md.penFd < 0) return 0; //adicionar errno
   // read(penFd, );
   //puxar os arquivos importantes, FAT, METADADOS, INFORMAÇÕES
 
@@ -62,26 +62,43 @@ FileDescriptor ufufs_open(const char* filename) {
 }
 
 int ufufs_read(FileDescriptor fd, void *buf, size_t count) {
-  // entra na estrutura do fd gerenciado pela lib
-  // tenta ler count bytes do vetor de blocos de arquivo
-  // se estiver inicializado retorna os count bytes no buffer
+   // invalid params
+  if(md.penFd == -1 || fd < 0 || fd > MAX_FDS || !md.fds[fd] || !buf || count < 0)
+    return -1;
+  size_t bytesOffset = 
+    bytesOffset + count > md.fds[fd]->qntBytes 
+      ? md.fds[fd]->qntBytes
+      : md.fds[fd]->offset + count;
+  // desloca byte a byte ((char*) md.fds[fd]->blocks) + bytesOffset
+  memcpy(buf, ((char*) md.fds[fd]->blocks) + bytesOffset, count);
+  // se estiver inicializado retorna os count bytes no buffer, vamos trazer o arquivo inteiro para memória?
   // senão, usa o penFd para, inode (indice de inicio do arquivo na fat) 
   // buscando o bloco usando as funções da fat
   // retornado, retorna isso no buffer
 }
 
 int ufufs_write(FileDescriptor fd, void *buf, size_t count) {
-  // escreve na estrutura do file descriptor (vetor n blocos - representa o arquivo)
+  // invalid params
+  if(md.penFd == -1 || fd < 0 || fd > MAX_FDS || !md.fds[fd] || !buf || count < 0)
+    return -1;
+  size_t bytesOffset = md.fds[fd]->offset;
+  if(bytesOffset + count > md.fds[fd]->qntBytes) {
+    // alocar mais espaço para o arquivo ou dar erro?
+  }
+  // desloca byte a byte ((char*) md.fds[fd]->blocks) + bytesOffset
+  memcpy(((char*) md.fds[fd]->blocks) + bytesOffset, buf, count);
 }
 
-
-int ufufs_seek(FileDescriptor fd, int offset) {
-
-  // validar entradas
-  md.fds[fd]->offset += offset;
-  // entra na estrutura do fd gerenciado pela lib
-  // desloca o offset em 'offset' bytes do parametro
-  return ;
+// DONE
+size_t ufufs_seek(FileDescriptor fd, size_t offset) {
+  // invalid params
+  if(md.penFd == -1 || fd < 0 || fd > MAX_FDS || !md.fds[fd])
+    return -1;
+  size_t bytesOffset = md.fds[fd]->offset + offset;
+  // invalid offset
+  if(bytesOffset < 0 || bytesOffset > md.fds[fd]->qntBytes)
+    return -1;
+  return md.fds[fd]->offset = bytesOffset;
 }
 
 int ufufs_close(FileDescriptor fd) {
