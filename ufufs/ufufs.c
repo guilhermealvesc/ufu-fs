@@ -5,22 +5,21 @@
 #include <fcntl.h>
 #include "../blockmanager/blockmanager.h"
 #include "./ufufs.h"
+#include "./ftree/types.h"
 #define MAX_FDS 30
 
 // usa o fd do SO
-typedef struct
-{
+typedef struct{
   size_t inode;
   off_t qntBytes;
   void *blocks; //[block, block, block]
   off_t offset;
 } FD;
 
-typedef struct
-{
+typedef struct{
   int penFd;
-  // int BYTES;
-  // int BLOCKS;
+  //int BYTES;
+  //int BLOCKS;
   FD *fds[MAX_FDS];
 } MountData;
 
@@ -28,8 +27,7 @@ typedef struct
 MountData md = {-1, NULL};
 // todas rotinas devem verificar se o fs foi montado
 
-int ufufs_mount(const char *filePath)
-{
+int ufufs_mount(const char *filePath){
   md.penFd = open(filePath, O_RDWR);
   if (md.penFd < 0)
     return 0; //adicionar errno
@@ -37,23 +35,29 @@ int ufufs_mount(const char *filePath)
   short int MAGIC_N;
   off_t BYTES;
   size_t BLOCKS;
-  if (read(md.penFd, &MAGIC_N, sizeof(MAGIC_N)) > 0)
-  {
+
+  if (read(md.penFd, &MAGIC_N, sizeof(MAGIC_N)) > 0){
     printf("MAGIC_N: %d\n", MAGIC_N);
   }
 
-  if (read(md.penFd, &BYTES, sizeof(BYTES)) > 0)
-  {
+  if (read(md.penFd, &BYTES, sizeof(BYTES)) > 0){
     printf("BYTES: %ld\n", BYTES);
   }
 
-  if (read(md.penFd, &BLOCKS, sizeof(BLOCKS)) > 0)
-  {
+  if (read(md.penFd, &BLOCKS, sizeof(BLOCKS)) > 0){
     printf("BLOCKS: %ld\n", BLOCKS);
   }
-  //puxar os arquivos importantes, FAT, METADADOS, INFORMAÇÕES
 
+  FILES FILE_TABLE;
+  if (!(FILE_TABLE = (FILES)malloc(sizeof(struct file) * BLOCKS)))
+    throw_e("Couldn't alloc Files Table...");
+  size_t offset = sizeof(FILE_TABLE);
+  //puxar os arquivos importantes, FAT, METADADOS, INFORMAÇÕES
   //coloca fat, metadados, informações na área compartilhada
+  for(int i = 0; i < MAX_FDS; i++) { 
+    if(read(md.penFd, &FILE_TABLE, offset) > 0 ){
+      offset += sizeof(FILE_TABLE);
+  }
   //retorna se deu erro ou não
 }
 

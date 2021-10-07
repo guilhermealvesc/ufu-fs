@@ -5,26 +5,24 @@
 #include <fcntl.h>
 #include "./utils/utils.h"
 #include "./blockmanager/blockmanager.h"
-#include "./faloc/faloc.h"
+//#include "./faloc/faloc.h"
 #include "./ftree/ftree.h"
 #include "./ufufs/ufufs.h"
 #include "./ftree/types.h"
 
 // [MAGIC_N, BYTES, BLOCK_SIZE, FILES, FAT]
 
-typedef struct
-{
-  short int MAGIC_N;
-  off_t BYTES;
-  size_t BLOCKS;
-  FILES FILES_TABLE;
-  FAT FAT;
-} MBR;
+//typedef struct{
+//  short int MAGIC_N;
+//  off_t BYTES;
+//  size_t BLOCKS;
+//  FILES FILES_TABLE;
+//  FAT FAT;
+//} MBR;
 
 void throw_e(const char *message);
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv){
   printf("\e[1;1H\e[2J");
   if (argc != 2)
     return 1;
@@ -56,7 +54,7 @@ int main(int argc, char **argv)
 
   printf("R_AREA_SIZE: %.1lfMB\nR_BLOCK_SIZE: %ld\nBLOCKS: %ld\n", R_AREA_SIZE / 1000000.0, R_BLOCK_SIZE, MBRI.BLOCKS);
 
-  // reserverd mem allocation proc
+  //reserverd mem allocation proc
   void *reserved_area;
   if ((reserved_area = calloc(BLOCK_SIZE, R_BLOCK_SIZE)) == NULL)
   {
@@ -77,11 +75,10 @@ int main(int argc, char **argv)
   offset += sizeof(MBRI.BLOCKS);
 
   //writing FILES_TABLE - unecessary
-  // memset(((char *)reserved_area) + offset, MBRI.FILES_TABLE, bytesFiles);
-  offset += bytesFiles;
+  //memset(((char *)reserved_area) + offset, MBRI.FILES_TABLE, bytesFiles);
+  //offset += bytesFiles;
 
-  for (int i = 0; i < R_BLOCK_SIZE; i++)
-  {
+  for (int i = 0; i < R_BLOCK_SIZE; i++){
     fat_flag_block(MBRI.FAT, i, BLOCK_MBR);
   }
 
@@ -93,10 +90,8 @@ int main(int argc, char **argv)
 
   // printf("MAGIC_N: %d\n", MBRI.MAGIC_N);
 
-  for (int i = 0; i < R_BLOCK_SIZE; i++)
-  {
-    if (write_block(penFd, i, ((char *)reserved_area) + (BLOCK_SIZE * i)) < 0)
-    {
+  for (int i = 0; i < R_BLOCK_SIZE; i++){
+    if (write_block(penFd, i, ((char *)reserved_area) + (BLOCK_SIZE * i)) < 0){
       throw_e("Erro na formatacao!!");
     }
   }

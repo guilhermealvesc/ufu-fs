@@ -1,4 +1,4 @@
-
+#include "./faloc/types.h"
 // SHARED LIB
 typedef unsigned int FileDescriptor;
 
@@ -15,10 +15,10 @@ int ufufs_close(FileDescriptor fd);
 
 off_t ufufs_seek(FileDescriptor fd, size_t offset);
 
-// typedef struct {
-//   const int MAGIC_N;
-//   const int BYTES;
-//   const int BLOCKS;
-//   FILES FILES_TABLE;
-//   FAT FAT;
-// } MBR;
+ typedef struct {
+   const int MAGIC_N;
+   const int BYTES;
+   const int BLOCKS;
+   FILES FILES_TABLE;
+   FAT FAT;
+ } MBR;
