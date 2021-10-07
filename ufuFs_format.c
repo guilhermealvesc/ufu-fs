@@ -14,9 +14,9 @@
 // [MAGIC_N, BYTES, BLOCK_SIZE, FILES, FAT]
 
 typedef struct {
-  const int MAGIC_N;
-  const int BYTES;
-  const int BLOCKS;
+  short int MAGIC_N;
+  size_t BYTES;
+  size_t BLOCKS;
   FILES FILES_TABLE;
   FAT FAT;
 } MBR;
@@ -42,25 +42,50 @@ int main (int argc, char** argv) {
   
   // ALOCAR FILES 
   // [R R R R F F F F F F F F]
-  if(!(MBRI.FILES_TABLE = malloc(MBRI.BLOCKS * sizeof(struct file)))) //struct file = 40 bytes
+  if(!(MBRI.FILES_TABLE = (FILES) calloc(MBRI.BLOCKS, sizeof(struct file))))
     throw_e("Couldn't alloc Files Table...");
   // ALOCAÇÃO FAT
   if(!(MBRI.FAT = fat_init(MBRI.BLOCKS)))
     throw_e("Couldn't alloc FAT...");  
   // saber qual tamanho que será reservado, e reservá-lo no FAT
   // size_t table_size = sizeof(MBRI.FILES_TABLE) / sizeof(MBRI.FILES_TABLE[0]); //table_size terá o tamanho do vetor, se FILES_TABLE[3], table_size = 3;
-  int R_AREA_SIZE = sizeof(const int) * 3 + (MBRI.BLOCKS * sizeof(struct file)) + (MBRI.BLOCKS * sizeof(int));
+  int R_AREA_SIZE = sizeof(short int) + sizeof(size_t) * 2 + (MBRI.BLOCKS * sizeof(struct file)) + (MBRI.BLOCKS * sizeof(size_t));
   int R_BLOCK_SIZE = GET_BLOCKS(R_AREA_SIZE);
   printf("R_AREA_SIZE: %.1lfMB\nR_BLOCK_SIZE: %d\nBLOCKS: %d\n", R_AREA_SIZE/1000000.0, R_BLOCK_SIZE, MBRI.BLOCKS);
-  int i;
-  // ESCREVER OS 3 INTEIROS E OS 2 VETORES
-  // for(i = 0; i < R_BLOCK_SIZE; i++) {
-  //   //write_block(penFd, i, (&MBRI) + BLOCK_SIZE * i);
+  
+  void* reserved_area;
+  if((reserved_area = malloc(R_BLOCK_SIZE * BLOCK_SIZE)) == NULL) {
+    throw_e("Couldn't alloc reserved area..");
+  }
+  size_t offset = 0;
+  //convertemos para char para andar de byte a byte na memoria
+  //writing MAGIC_N
+  memcpy(((char*) reserved_area) + offset, &MBRI.MAGIC_N, sizeof(MBRI.MAGIC_N));
+  offset += sizeof(MBRI.MAGIC_N);
 
-  //   fat_flag_block(MBRI.FAT, i, BLOCK_MBR);
-  //   write_block(penFD,i,)
-  //   //fazer um loop para cada elemento da struct para escrever tudo
-  //   //caso faça tudo neste for pode ocorrer de escrever mais de uma vez cada um
-  // }
+  //writing BYTES
+  memcpy(((char*) reserved_area) + offset, &MBRI.BYTES, sizeof(MBRI.BYTES));
+  offset += sizeof(MBRI.BYTES);
+
+  //writing BLOCKS
+  memcpy(((char*) reserved_area) + offset, &MBRI.BLOCKS, sizeof(MBRI.BLOCKS));
+  offset += sizeof(MBRI.BLOCKS);
+
+  //writing FILES_TABLE
+  memset(((char*) reserved_area) + offset, MBRI.FILES_TABLE, MBRI.BLOCKS * sizeof(struct file));
+  offset += MBRI.BLOCKS * sizeof(struct file);
+
+  for(int i = 0; i < MBRI.BLOCKS; i++) {
+    //write_block(penFd, i, (&MBRI) + BLOCK_SIZE * i 
+    fat_flag_block(MBRI.FAT, i, i < R_BLOCK_SIZE ? BLOCK_MBR : BLOCK_FREE );
+    //write_block(penFD,i,);
+    //fazer um loop para cada elemento da struct para escrever tudo
+    //caso faça tudo neste for pode ocorrer de escrever mais de uma vez cada um
+  }
+
+  //writing FAT
+  memcpy(((char*) reserved_area) + offset, MBRI.FILES_TABLE, MBRI.BLOCKS * sizeof(struct file));
+  offset += MBRI.BLOCKS * sizeof(struct file);
+
   return 0;
 }

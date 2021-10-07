@@ -2,4 +2,4 @@
 #define BLOCK_FREE -2  //bloco livre
 #define BLOCK_MBR -3  //bloco reservado
 
-typedef int* FAT;
+typedef size_t* FAT;
