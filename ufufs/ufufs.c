@@ -57,9 +57,10 @@ int ufufs_mount(const char *filePath){
   for(int i = 0; i < MAX_FDS; i++) { 
     if(read(md.fds[i], &FILE_TABLE, offset) > 0 ){
       offset += sizeof(FILE_TABLE);
-    }
+    } else return 0;
   //retorna se deu erro ou não
   }
+  return 1;
 }
 // file descriptor (int) -> usado para ler byte a byte do arquivo aberto
 // quando o arquivo for aberto, preciso criar para esse file descriptor
