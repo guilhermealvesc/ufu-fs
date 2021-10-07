@@ -55,20 +55,19 @@ int ufufs_mount(const char *filePath){
   //puxar os arquivos importantes, FAT, METADADOS, INFORMAÇÕES
   //coloca fat, metadados, informações na área compartilhada
   for(int i = 0; i < MAX_FDS; i++) { 
-    if(read(md.penFd, &FILE_TABLE, offset) > 0 ){
+    if(read(md.fds[i], &FILE_TABLE, offset) > 0 ){
       offset += sizeof(FILE_TABLE);
-  }
+    }
   //retorna se deu erro ou não
+  }
 }
-
 // file descriptor (int) -> usado para ler byte a byte do arquivo aberto
 // quando o arquivo for aberto, preciso criar para esse file descriptor
 // cada file descriptor:
 // vetor de blocos do arquivo
 // deslocamento em bytes
 
-FileDescriptor ufufs_open(const char *filename)
-{
+FileDescriptor ufufs_open(const char *filename){
   // olha na tabela de metadados se o arquivo existe
 
   // existindo, criar o ponteiro para arquivo inicializado com deslocamento em bytes zerado (offset),
