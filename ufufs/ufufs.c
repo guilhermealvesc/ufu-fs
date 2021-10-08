@@ -3,20 +3,20 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
-#include "../blockmanager/blockmanager.h"
 #include "./ufufs.h"
-#include "./ftree/types.h"
 #define MAX_FDS 30
 
 // usa o fd do SO
-typedef struct{
+typedef struct
+{
   size_t inode;
   off_t qntBytes;
-  void *blocks; //[block, block, block]
+  void *blocks;
   off_t offset;
 } FD;
 
-typedef struct{
+typedef struct
+{
   int penFd;
   MBR MBRI;
   //const int MAGIC_N;
@@ -28,52 +28,91 @@ typedef struct{
 } MountData;
 
 //[0]
-MountData md = {-1, NULL};
-// todas rotinas devem verificar se o fs foi montado
-// [MAGIC_N, BYTES, BLOCK_SIZE, FILES, FAT]
-int ufufs_mount(const char *filePath){
+MountData md = {-1, {}, NULL};
+
+// DONE
+int ufufs_mount(const char *filePath)
+{
   md.penFd = open(filePath, O_RDWR);
   if (md.penFd < 0)
-    return 0; //adicionar errno
-              //read(penFd,);
+    return 0;
 
-  if (read(md.penFd, &md.MBRI.MAGIC_N, sizeof(md.MBRI.MAGIC_N)) > 0){
-    printf("MAGIC_N: %d\n", md.MBRI.MAGIC_N);
-  }
+  if (read(md.penFd, &md.MBRI.MAGIC_N, sizeof(md.MBRI.MAGIC_N)) <= 0)
+    return 0;
 
-  if (md.MBRI.MAGIC_N != MAGIC_NUM) return 0;
+  if (md.MBRI.MAGIC_N != MAGIC_NUM)
+    return 0;
 
-  if (read(md.penFd, &md.MBRI.BYTES, sizeof(md.MBRI.BYTES)) > 0){
-    printf("BYTES: %ld\n", md.MBRI.BYTES);
-  }
+  if (read(md.penFd, &md.MBRI.BYTES, sizeof(md.MBRI.BYTES)) <= 0)
+    return 0;
 
-  if (read(md.penFd, &md.MBRI.BLOCKS, sizeof(md.MBRI.BLOCKS)) > 0){
-    printf("BLOCKS: %ld\n",md.MBRI.BLOCKS);
-  }
+  if (read(md.penFd, &md.MBRI.BLOCKS, sizeof(md.MBRI.BLOCKS)) <= 0)
+    return 0;
 
-  if (!(md.MBRI.FILES_TABLE = (FILES) malloc(sizeof(struct file) * md.MBRI.BLOCKS)))
-    printf("Erro ao alocar files_table\n");
+  if (!(md.MBRI.FILES_TABLE = (FILES)malloc(sizeof(struct file) * md.MBRI.BLOCKS)))
+    return 0;
 
-  if(read(md.penFd, md.MBRI.FILES_TABLE, sizeof(struct file) * md.MBRI.BLOCKS) < 0){
-    printf("Erro ao ler files_table do pen drive\n");
-  } else {
+  if (read(md.penFd, md.MBRI.FILES_TABLE, sizeof(struct file) * md.MBRI.BLOCKS) <= 0)
+    return 0;
+  else
+  {
     //essa parte podemos apagar dps, é só para teste-------------------------------------
-    for(int i = 0; i < md.MBRI.BLOCKS; i++){
-      printf("iblock: %zu\n", md.MBRI.FILES_TABLE[i].iblock);
-      printf("Name: %s\n", md.MBRI.FILES_TABLE[i]->name);
-      printf("Create Date: %d/%m/%Y, %H:%M:%S\n", md.MBRI.FILES_TABLE[i].create_date);
-      printf("Last access: %d/%m/%Y, %H:%M:%S\n", md.MBRI.FILES_TABLE[i].last_access);
-      printf("Size in bytes: %zu\n", md.MBRI.FILES_TABLE[i].bytes);
-    }
+    // for (int i = 0; i < md.MBRI.BLOCKS; i++)
+    // {
+    //   printf("iblock: %zu\n", md.MBRI.FILES_TABLE[i].iblock);
+    //   printf("Name: %s\n", md.MBRI.FILES_TABLE[i].name);
+    //   printf("Create Date: %d/%m/%Y, %H:%M:%S\n", getDate md.MBRI.FILES_TABLE[i].create_date);
+    //   printf("Last access: %d/%m/%Y, %H:%M:%S\n", md.MBRI.FILES_TABLE[i].last_access);
+    //   printf("Size in bytes: %zu\n", md.MBRI.FILES_TABLE[i].bytes);
+    // }
     //-----------------------------------------------------------------------------------
   }
 
   if (!(md.MBRI.FAT = (size_t *)malloc(sizeof(size_t) * md.MBRI.BLOCKS)))
-   printf("Couldn't alloc FAT...");
+    printf("Couldn't alloc FAT...");
 
-  if(read(md.penFd, md.MBRI.FAT, sizeof(size_t) * md.MBRI.BLOCKS) < 0){
+  if (read(md.penFd, md.MBRI.FAT, sizeof(size_t) * md.MBRI.BLOCKS) <= 0)
+  {
     printf("Erro ao ler FAT");
   }
+
+  return 1;
+}
+
+int ufufs_create(const char *fname)
+{
+  // invalid params
+  if (md.penFd == -1 || !fname || strlen(fname) > 10)
+    return -1;
+  int pos = -1, i;
+  for (i = md.MBRI.BLOCKS; i > 0; i--)
+  {
+    if (md.MBRI.FILES_TABLE[i].name == NULL)
+      pos = i;
+    else if (!strcmp(md.MBRI.FILES_TABLE[i].name, fname))
+      return -1;
+  }
+  //FILES_TABLE FULL
+  if (pos == -1)
+    return -1;
+  for (i = 0; i < md.MBRI.BLOCKS; i++)
+  {
+    if (md.MBRI.FAT[i] == BLOCK_FREE)
+      break;
+  }
+  //FAT FULL
+  if (i == md.MBRI.BLOCKS)
+    return 0;
+  const char filename[11];
+  time_t t_time;
+  time(&t_time);
+  fat_flag_block(md.MBRI.FAT, i, BLOCK_END);
+
+  md.MBRI.FILES_TABLE[i].iblock = i;
+  strcpy(md.MBRI.FILES_TABLE[i].name, fname);
+  md.MBRI.FILES_TABLE[i].create_date = t_time;
+  md.MBRI.FILES_TABLE[i].last_access = t_time;
+  md.MBRI.FILES_TABLE[i].bytes = 0;
 
   return 1;
 }
@@ -84,34 +123,43 @@ int ufufs_mount(const char *filePath){
 // vetor de blocos do arquivo
 // deslocamento em bytes
 
-FileDescriptor ufufs_open(const char *filename){
+FileDescriptor ufufs_open(const char *filename)
+{
   // olha na tabela de metadados se o arquivo existe
   int i;
-  for(i = 0; i < md.MBRI.BLOCKS; i++){
-    if(strcmp(md.MBRI.FILES_TABLE[i].name, filename) == 0)
+  for (i = 0; i < md.MBRI.BLOCKS; i++)
+  {
+    if (strcmp(md.MBRI.FILES_TABLE[i].name, filename) == 0)
       break;
     else
       i = -1; //se i != -1 existe
   }
   // existindo, criar o ponteiro para arquivo inicializado com deslocamento em bytes zerado (offset),
-  if(i != -1){
+  if (i != -1)
+  {
     int fd;
-    for (fd = 0; fd < MAX_FDS; fd++){
+    for (fd = 0; fd < MAX_FDS; fd++)
+    {
       if (!md.fds[fd])
         break;
-      }
+    }
     // tabela de metadados tem a quantidade de bytes do arquivo
     // sabendo disso e do tamanho do block size, alocar vetor com tamanho GET_BLOCKS(bytes_file) para comportar arquivo
-    
-    if(!(md.fds[fd]->blocks = (int *) malloc(GET_BLOCKS(md.MBRI.FILES_TABLE.bytes))))
-      return NULL;
-    md.fds[fd]->inode = md.MBRI.FILES_TABLE.iblock;    
-    md.fds[fd]->qntBytes = md.MBRI.FILES_TABLE.bytes;
-    //md.fds[fd]->blocks = ?? não sei de onde puxar essas informacoes
-    //md.fds[fd]->offset = ??
+    size_t blocosArquivo = GET_BLOCKS(md.MBRI.FILES_TABLE[i].bytes);
+    if (!(md.fds[fd]->blocks = (int *)malloc(blocosArquivo * BLOCK_SIZE)))
+      return -1;
+    md.fds[fd]->inode = md.MBRI.FILES_TABLE[i].iblock;
+    md.fds[fd]->qntBytes = md.MBRI.FILES_TABLE[i].bytes;
+    for (i = 0; i < blocosArquivo; i++)
+    {
+      fat_getf_block(md.penFd, md.MBRI.FAT, md.fds[fd]->inode, i, (char *)md.fds[fd]->blocks + (BLOCK_SIZE * i));
+    }
+    md.fds[fd]->offset = 0;
     // retorna um inteiro (chave) para acessar arquivo
     return fd;
-  } else return NULL;
+  }
+  else
+    return -1;
 }
 
 int ufufs_read(FileDescriptor fd, void *buf, size_t count)

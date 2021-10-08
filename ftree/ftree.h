@@ -1,4 +1,5 @@
 #include <time.h>
+#include "types.h"
 #define MAX_LEN_TIME_STR 21
 // dia[1-31]/mês[1-12]/[1900-2999], hh:mm:ss
 #define TIME_FORMAT "%d/%m/%Y, %H:%M:%S"
@@ -23,4 +24,3 @@
 //   unsigned int bytes;
 //   enum F_TYPES ftype;
 // };
-

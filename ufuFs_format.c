@@ -4,25 +4,12 @@
 #include <math.h>
 #include <fcntl.h>
 #include "./utils/utils.h"
-#include "./blockmanager/blockmanager.h"
-//#include "./faloc/faloc.h"
-#include "./ftree/ftree.h"
 #include "./ufufs/ufufs.h"
-#include "./ftree/types.h"
-
-// [MAGIC_N, BYTES, BLOCK_SIZE, FILES, FAT]
-
-//typedef struct{
-//  short int MAGIC_N;
-//  off_t BYTES;
-//  size_t BLOCKS;
-//  FILES FILES_TABLE;
-//  FAT FAT;
-//} MBR;
 
 void throw_e(const char *message);
 
-int main(int argc, char **argv){
+int main(int argc, char **argv)
+{
   printf("\e[1;1H\e[2J");
   if (argc != 2)
     return 1;
@@ -76,22 +63,26 @@ int main(int argc, char **argv){
 
   //writing FILES_TABLE - unecessary
   //memset(((char *)reserved_area) + offset, MBRI.FILES_TABLE, bytesFiles);
-  //offset += bytesFiles;
+  offset += bytesFiles;
 
-  for (int i = 0; i < R_BLOCK_SIZE; i++){
+  for (int i = 0; i < R_BLOCK_SIZE; i++)
+  {
     fat_flag_block(MBRI.FAT, i, BLOCK_MBR);
   }
 
+  // fat_show(MBRI.FAT, MBRI.BLOCKS);
+
   //writing FAT
-  memcpy(((char *)reserved_area) + offset, MBRI.FILES_TABLE, bytesFat);
-  offset += bytesFat;
+  memcpy(((char *)reserved_area) + offset, MBRI.FAT, bytesFat);
 
   // memcpy(&MBRI.MAGIC_N, reserved_area, sizeof(MBRI.MAGIC_N));
 
   // printf("MAGIC_N: %d\n", MBRI.MAGIC_N);
 
-  for (int i = 0; i < R_BLOCK_SIZE; i++){
-    if (write_block(penFd, i, ((char *)reserved_area) + (BLOCK_SIZE * i)) < 0){
+  for (int i = 0; i < R_BLOCK_SIZE; i++)
+  {
+    if (write_block(penFd, i, ((char *)reserved_area) + (BLOCK_SIZE * i)) < 0)
+    {
       throw_e("Erro na formatacao!!");
     }
   }

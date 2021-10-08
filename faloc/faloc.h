@@ -1,4 +1,5 @@
 #include "types.h"
+#include "../blockmanager/blockmanager.h"
 #define validBlock(fat, block) (fat && block >= 0)
 
 size_t *fat_init(int blocks);

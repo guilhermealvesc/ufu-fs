@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "faloc.h"
-#include "../blockmanager/blockmanager.h"
 
 int fat_flag_block(size_t *fat, int block, int flag)
 {
@@ -35,7 +34,7 @@ int fat_show(size_t *fat, int blocks)
       str[1] = '\0';
       break;
     }
-    printf(" [%s]", str);
+    printf("\n[%s]", str);
   }
   printf("\n");
 }
