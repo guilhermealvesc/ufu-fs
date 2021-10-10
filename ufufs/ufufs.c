@@ -54,27 +54,12 @@ int ufufs_mount(const char *filePath)
 
   if (read(md.penFd, md.MBRI.FILES_TABLE, sizeof(struct file) * md.MBRI.BLOCKS) <= 0)
     return 0;
-  else
-  {
-    //essa parte podemos apagar dps, é só para teste-------------------------------------
-    // for (int i = 0; i < md.MBRI.BLOCKS; i++)
-    // {
-    //   printf("iblock: %zu\n", md.MBRI.FILES_TABLE[i].iblock);
-    //   printf("Name: %s\n", md.MBRI.FILES_TABLE[i].name);
-    //   printf("Create Date: %d/%m/%Y, %H:%M:%S\n", getDate md.MBRI.FILES_TABLE[i].create_date);
-    //   printf("Last access: %d/%m/%Y, %H:%M:%S\n", md.MBRI.FILES_TABLE[i].last_access);
-    //   printf("Size in bytes: %zu\n", md.MBRI.FILES_TABLE[i].bytes);
-    // }
-    //-----------------------------------------------------------------------------------
-  }
 
   if (!(md.MBRI.FAT = (size_t *)malloc(sizeof(size_t) * md.MBRI.BLOCKS)))
-    printf("Couldn't alloc FAT...");
+    return 0;
 
   if (read(md.penFd, md.MBRI.FAT, sizeof(size_t) * md.MBRI.BLOCKS) <= 0)
-  {
-    printf("Erro ao ler FAT");
-  }
+    return 0;
 
   return 1;
 }
@@ -131,66 +116,78 @@ FileDescriptor ufufs_open(const char *filename)
   {
     if (strcmp(md.MBRI.FILES_TABLE[i].name, filename) == 0)
       break;
-    else
-      i = -1; //se i != -1 existe
   }
-  // existindo, criar o ponteiro para arquivo inicializado com deslocamento em bytes zerado (offset),
-  if (i != -1)
+  if (i >= md.MBRI.BLOCKS)
+    return 0;
+
+  int fd;
+  for (fd = 0; fd < MAX_FDS; fd++)
   {
-    int fd;
-    for (fd = 0; fd < MAX_FDS; fd++)
-    {
-      if (!md.fds[fd])
-        break;
-    }
-    // tabela de metadados tem a quantidade de bytes do arquivo
-    // sabendo disso e do tamanho do block size, alocar vetor com tamanho GET_BLOCKS(bytes_file) para comportar arquivo
-    size_t blocosArquivo = GET_BLOCKS(md.MBRI.FILES_TABLE[i].bytes);
-    if (!(md.fds[fd]->blocks = (int *)malloc(blocosArquivo * BLOCK_SIZE)))
-      return -1;
-    md.fds[fd]->inode = md.MBRI.FILES_TABLE[i].iblock;
-    md.fds[fd]->qntBytes = md.MBRI.FILES_TABLE[i].bytes;
-    for (i = 0; i < blocosArquivo; i++)
-    {
-      fat_getf_block(md.penFd, md.MBRI.FAT, md.fds[fd]->inode, i, (char *)md.fds[fd]->blocks + (BLOCK_SIZE * i));
-    }
-    md.fds[fd]->offset = 0;
-    // retorna um inteiro (chave) para acessar arquivo
-    return fd;
+    if (!md.fds[fd])
+      break;
   }
-  else
+
+  size_t blocosArquivo = GET_BLOCKS(md.MBRI.FILES_TABLE[i].bytes);
+  if (!(md.fds[fd]->blocks = (int *)malloc(blocosArquivo * BLOCK_SIZE)))
     return -1;
+  for (i = 0; i < blocosArquivo; i++)
+  {
+    int resGetf = fat_getf_block(
+        md.penFd,
+        md.MBRI.FAT,
+        md.MBRI.FILES_TABLE[i].iblock,
+        i,
+        (char *)md.fds[fd]->blocks + (BLOCK_SIZE * i));
+    if (resGetf <= 0)
+      return 0;
+  }
+  md.fds[fd]->inode = md.MBRI.FILES_TABLE[i].iblock;
+  md.fds[fd]->qntBytes = md.MBRI.FILES_TABLE[i].bytes;
+  md.fds[fd]->offset = 0;
+  // retorna um inteiro (chave) para acessar arquivo
+  return fd;
 }
 
 int ufufs_read(FileDescriptor fd, void *buf, size_t count)
 {
   // invalid params
   if (md.penFd == -1 || fd < 0 || fd > MAX_FDS || !md.fds[fd] || !buf || count < 0)
-    return -1;
-  size_t bytesOffset =
-      bytesOffset + count > md.fds[fd]->qntBytes
-          ? md.fds[fd]->qntBytes
-          : md.fds[fd]->offset + count;
+    return 0;
+
+  if (md.fds[fd]->qntBytes < md.fds[fd]->offset)
+    return EOF;
+
+  size_t bytesOffset = md.fds[fd]->offset;
+  if (bytesOffset + count > md.fds[fd]->qntBytes)
+    return EOF;
+
   // desloca byte a byte ((char*) md.fds[fd]->blocks) + bytesOffset
   memcpy(buf, ((char *)md.fds[fd]->blocks) + bytesOffset, count);
-  // se estiver inicializado retorna os count bytes no buffer, vamos trazer o arquivo inteiro para memória?
-  // senão, usa o penFd para, inode (indice de inicio do arquivo na fat)
-  // buscando o bloco usando as funções da fat
-  // retornado, retorna isso no buffer
+  md.fds[fd]->offset += count;
+  return 1;
 }
 
 int ufufs_write(FileDescriptor fd, void *buf, size_t count)
 {
   // invalid params
   if (md.penFd == -1 || fd < 0 || fd > MAX_FDS || !md.fds[fd] || !buf || count < 0)
-    return -1;
+    return 0;
+
+  if (md.fds[fd]->qntBytes < md.fds[fd]->offset)
+    return EOF;
+
   size_t bytesOffset = md.fds[fd]->offset;
   if (bytesOffset + count > md.fds[fd]->qntBytes)
   {
-    // alocar mais espaço para o arquivo ou dar erro?
+    void *newBlocks = reallocarray(md.fds[fd]->blocks, GET_BLOCKS(md.fds[fd]->qntBytes + count), BLOCK_SIZE);
+    if (!newBlocks)
+      return 0;
+    md.fds[fd]->blocks = newBlocks;
+    md.fds[fd]->qntBytes += count;
   }
   // desloca byte a byte ((char*) md.fds[fd]->blocks) + bytesOffset
   memcpy(((char *)md.fds[fd]->blocks) + bytesOffset, buf, count);
+  return 1;
 }
 
 // DONE
@@ -198,11 +195,12 @@ off_t ufufs_seek(FileDescriptor fd, size_t offset)
 {
   // invalid params
   if (md.penFd == -1 || fd < 0 || fd > MAX_FDS || !md.fds[fd])
-    return -1;
+    return 0;
+
   off_t bytesOffset = md.fds[fd]->offset + offset;
   // invalid offset
   if (bytesOffset < 0 || bytesOffset > md.fds[fd]->qntBytes)
-    return -1;
+    return 0;
   return md.fds[fd]->offset = bytesOffset;
 }
 
