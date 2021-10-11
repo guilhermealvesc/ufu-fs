@@ -18,12 +18,10 @@ void dir();
 void date();
 void timeShell();
 
-int main()
-{
+int main(){
   char command[MAX_SIZE + 1];
   printf("Bem vindo ao Shell!!\n\n");
-  while (1)
-  {
+  while (1){
     printf("> ");
     setbuf(stdin, NULL);
     scanf("%[^\n]s", command);
@@ -53,15 +51,12 @@ int main()
   return 0;
 }
 
-void formatCommand(char *str, unsigned short int max)
-{
+void formatCommand(char *str, unsigned short int max){
   int i, j;
-  for (i = 0; i < max; i++)
-  {
+  for (i = 0; i < max; i++){
     str[i] = toupper(str[i]);
     //Removing ' ' through shifting O(n)
-    if (str[i] == ' ')
-    {
+    if (str[i] == ' '){
       for (j = i; j < max - 1; j++)
         str[j] = str[j + 1];
       max--;

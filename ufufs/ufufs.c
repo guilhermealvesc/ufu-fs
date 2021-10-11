@@ -5,7 +5,8 @@
 #include <fcntl.h>
 #include "./ufufs.h"
 #define MAX_FDS 30
-
+/* 
+descomentar aki e apagar as mudanças que fiz a partir da linha 30 de ufufs.h em caso de erro
 // usa o fd do SO
 typedef struct
 {
@@ -29,7 +30,7 @@ typedef struct
 
 //[0]
 MountData md = {-1, {}, NULL};
-
+*/
 // DONE
 int ufufs_mount(const char *filePath)
 {
