@@ -14,55 +14,93 @@
     se reconhecer alguma palavra executar função dela
 */
 
-
-int main(){
+int main()
+{
+    cls();
     char str[STR_MAX_SIZE], command[STR_MAX_SIZE];
     printf("Bem vindo ao mini-shell do UFU file system\n");
     printf("Digite Help nos comandos em caso de duvida\nExit para fechar\n");
-    while(1){
+    while (1)
+    {
         printf("Digite seu comando -> ");
         setbuf(stdin, NULL);
         scanf("%[^\n]s", str);
 
-        if( !formatCommand(str) ){
+        if (!formatCommand(str))
+        {
             printf("O argumento colocado parece invalido\n Tente novamente\n");
             continue;
         }
-        getCommand(str,command);
-        
-        if(command == "HELP"){  
+        getCommand(str, command);
+
+        if (!strcmp(command, "HELP"))
+        {
             helpShell();
-        } else if(command == "EXIT"){
+        }
+        else if (!strcmp(command, "EXIT"))
+        {
             break;
-        } else if(command == "TIME"){
+        }
+        else if (!strcmp(command, "TIME"))
+        {
             timeShell();
-        } else if(command == "CLS"){
+        }
+        else if (!strcmp(command, "CLS"))
+        {
             cls();
-        } else if(command == "DONUT"){
+        }
+        else if (!strcmp(command, "DONUT"))
+        {
             Donut();
-        } else if(command == "CREATE"){
-         //----------------------------------------------------
+        }
+        else if (!strcmp(command, "CREATE"))
+        {
+            //----------------------------------------------------
             char arg1[STR_MAX_SIZE];
-            getArgument(str,arg1,NULL);
+            getArgument(str, arg1, NULL);
             int verifica = Shell_create(arg1);
-            if(verifica == -1){
+            if (verifica == -1)
+            {
                 printf("Parametros invalidos\n");
                 continue;
-            } else if(verifica == 0){
+            }
+            else if (verifica == 0)
+            {
                 printf("Tabela FAT cheia\n");
                 continue;
-            } else if(verifica == 1){
+            }
+            else if (verifica == 1)
+            {
                 printf("Sucesso ao criar arquivo\n");
             }
-        //----------------------------------------------------
-        } else if (command == "OPEN"){
-            char arg1[STR_MAX_SIZE];
-            getArgument(str,arg1,NULL);
-            Shell_open(arg1); //fazer os tratamentos de erros, etc
-        } else if(command == "READ"){
-            //n sei implementar o read, write e seek aki, precisamos reunir
+            //----------------------------------------------------
         }
-
+        else if (!strcmp(command, "OPEN"))
+        {
+            char arg1[STR_MAX_SIZE];
+            getArgument(str, arg1, NULL);
+            Shell_open(arg1); //fazer os tratamentos de erros, etc
+        }
+        else if (!strcmp(command, "MOUNT"))
+        {
+            char arg1[STR_MAX_SIZE];
+            getArgument(str, arg1, NULL);
+            if (!Shell_mount(arg1))
+            {
+                printf("Nao foi possivel montar ufu fs em %s\n", arg1);
+            }
+        }
+        else
+        {
+            printf("Comando desconhecido!\n");
+            printf("Digite Help nos comandos em caso de duvida\nExit para fechar\n");
+        }
+        printf("\n");
+        for (int i = 0; i < STR_MAX_SIZE; i++)
+        {
+            str[i] = '\0';
+            command[i] = '\0';
+        }
     }
     return 0;
 }

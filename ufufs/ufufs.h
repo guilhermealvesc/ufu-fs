@@ -19,7 +19,8 @@ int ufufs_close(FileDescriptor fd);
 
 off_t ufufs_seek(FileDescriptor fd, size_t offset);
 
-typedef struct{
+typedef struct
+{
   short int MAGIC_N;
   off_t BYTES;
   size_t BLOCKS;
@@ -27,18 +28,19 @@ typedef struct{
   FAT FAT;
 } MBR;
 
-typedef struct{
+typedef struct
+{
   size_t inode;
   off_t qntBytes;
   void *blocks;
   off_t offset;
 } FD;
 
-
-typedef struct{
+typedef struct
+{
   int penFd;
   MBR MBRI;
   FD *fds[MAX_FDS];
 } MountData;
 
-MountData md = {-1, {}, NULL};
+// MountData md = {-1, {}, NULL};

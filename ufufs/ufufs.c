@@ -29,8 +29,8 @@ typedef struct
 } MountData;
 
 //[0]
-MountData md = {-1, {}, NULL};
 */
+MountData md = {-1, {}, NULL};
 // DONE
 int ufufs_mount(const char *filePath)
 {
@@ -95,7 +95,7 @@ int ufufs_create(const char *fname)
   fat_flag_block(md.MBRI.FAT, i, BLOCK_END);
 
   md.MBRI.FILES_TABLE[i].iblock = i;
-  strcpy(md.MBRI.FILES_TABLE[i].name, fname);
+  // strcpy(md.MBRI.FILES_TABLE[i].name, fname);
   md.MBRI.FILES_TABLE[i].create_date = t_time;
   md.MBRI.FILES_TABLE[i].last_access = t_time;
   md.MBRI.FILES_TABLE[i].bytes = 0;

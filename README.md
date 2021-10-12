@@ -7,4 +7,10 @@
 
 ## Compile
 
-`gcc ufuFs_format.c utils/utils.c blockmanager/blockmanager.c faloc/faloc.c ufufs/ufufs.c -o main.out -lm`
+### ufufs_format
+
+`gcc ufuFs_format.c utils/utils.c blockmanager/blockmanager.c faloc/faloc.c ufufs/ufufs.c -o main.out -lm -o `
+
+### ufufs_shell
+
+`gcc ./ufufsShell/shell.c ./ufufsShell/shellTAD.c ./ufufs/ufufs.c ./faloc/faloc.c ./blockmanager/blockmanager.c -lm -o shell.out`
