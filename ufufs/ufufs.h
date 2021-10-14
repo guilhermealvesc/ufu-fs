@@ -11,6 +11,8 @@ FileDescriptor ufufs_open(const char *fname);
 
 int ufufs_create(const char *fname);
 
+void ufufs_ls();
+
 int ufufs_read(FileDescriptor fd, void *buf, size_t count);
 
 int ufufs_write(FileDescriptor fd, void *buf, size_t count);

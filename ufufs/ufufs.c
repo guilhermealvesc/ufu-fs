@@ -5,6 +5,17 @@
 #include <fcntl.h>
 #include "./ufufs.h"
 #define MAX_FDS 30
+#define TIME_FORMAT "%d/%m/%Y, %H:%M:%S"
+
+int getDate(time_t *t_epoch, char *str)
+{
+  if (!t_epoch || !str)
+    return 0;
+  struct tm *tm = localtime(t_epoch);
+  if (!tm)
+    return 0;
+  return strftime(str, MAX_LEN_TIME_STR, TIME_FORMAT, tm);
+}
 /* 
 descomentar aki e apagar as mudanças que fiz a partir da linha 30 de ufufs.h em caso de erro
 // usa o fd do SO
@@ -27,11 +38,10 @@ typedef struct
   //FAT FAT;
   FD *fds[MAX_FDS];
 } MountData;
-
-//[0]
 */
+
 MountData md = {-1, {}, NULL};
-// DONE
+
 int ufufs_mount(const char *filePath)
 {
   md.penFd = open(filePath, O_RDWR);
@@ -63,6 +73,27 @@ int ufufs_mount(const char *filePath)
     return 0;
 
   return 1;
+}
+
+void ufufs_ls()
+{
+  if (md.penFd == -1)
+  {
+    printf("Pen Drive nao montado!\n");
+    return;
+  }
+  printf("Arquivos no pen drive montado:\n");
+  for (int i = 0; i < md.MBRI.BLOCKS; i++)
+  {
+    if (strcmp(md.MBRI.FILES_TABLE[i].name, "")) //#define TIME_FORMAT "%d/%m/%Y, %H:%M:%S"
+    {
+      char create_date[MAX_LEN_TIME_STR];
+      char last_access[MAX_LEN_TIME_STR];
+      getDate(&md.MBRI.FILES_TABLE[i].create_date, create_date);
+      getDate(&md.MBRI.FILES_TABLE[i].last_access, last_access);
+      printf("%s, %s create date, %s last access, %ld bytes\n", md.MBRI.FILES_TABLE[i].name, create_date, last_access, md.MBRI.FILES_TABLE[i].bytes);
+    }
+  }
 }
 
 int ufufs_create(const char *fname)
@@ -112,6 +143,8 @@ int ufufs_create(const char *fname)
 FileDescriptor ufufs_open(const char *filename)
 {
   // olha na tabela de metadados se o arquivo existe
+  if (md.penFd == -1)
+    return 0;
   int i;
   for (i = 0; i < md.MBRI.BLOCKS; i++)
   {
@@ -130,7 +163,7 @@ FileDescriptor ufufs_open(const char *filename)
 
   size_t blocosArquivo = GET_BLOCKS(md.MBRI.FILES_TABLE[i].bytes);
   if (!(md.fds[fd]->blocks = (int *)malloc(blocosArquivo * BLOCK_SIZE)))
-    return -1;
+    return 0;
   for (i = 0; i < blocosArquivo; i++)
   {
     int resGetf = fat_getf_block(

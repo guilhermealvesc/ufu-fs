@@ -11,6 +11,8 @@ char *_getCommand(char *str);
 void getArgument(char *str, char *arg1, char *arg2);
 void timeShell();
 void cls();
+int cp(char *src, char *dest);
+void ls();
 void helpShell();
 void Donut();
 int Shell_create(char *arg1);

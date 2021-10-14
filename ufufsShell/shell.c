@@ -8,11 +8,6 @@
 #include "shellTADheader.h"
 #define clear() printf("\033[H\033[J")
 #define STR_MAX_SIZE 1024
-/*
-    A ideia do algoritmo é: ler o input, procurar palavras definidas na tabelahash do shell
-    utilizando uma busca, para facilitar vou reutilizar o código do nosso tra2 de aed2
-    se reconhecer alguma palavra executar função dela
-*/
 
 int main()
 {
@@ -47,38 +42,40 @@ int main()
         {
             Donut();
         }
-        else if (!strcmp(command, "CREATE"))
+        else if (!strcmp(command, "CP"))
         {
-            //----------------------------------------------------
             arg = _getArg(str);
-            int verifica = Shell_create(arg[1]);
-            if (verifica == -1)
+            if (cp(arg[1], arg[2]))
             {
-                printf("Parametros invalidos\n");
-                continue;
+                printf("Arquivo copiado de '%s' para '%s'\n", arg[1], arg[2]);
             }
-            else if (verifica == 0)
+            else
             {
-                printf("Tabela FAT cheia\n");
-                continue;
+                printf("Nao foi possivel copiar\n");
             }
-            else if (verifica == 1)
-            {
-                printf("Sucesso ao criar arquivo\n");
-            }
-            //----------------------------------------------------
         }
-        else if (!strcmp(command, "OPEN"))
+        else if (!strcmp(command, "LS"))
         {
-            arg = _getArg(str);
-            Shell_open(arg[1]); //fazer os tratamentos de erros, etc
+            ls();
         }
         else if (!strcmp(command, "MOUNT"))
         {
-            arg = _getArg(str);
-            if (!Shell_mount(arg[1]))
+            if (getuid() != 0)
             {
-                printf("Nao foi possivel montar ufu fs em %s\n", arg[1]);
+                printf("Sem permissoes sudo para utilizar mount!\n");
+            }
+            else
+            {
+                arg = _getArg(str);
+                if (!Shell_mount(arg[1]))
+                {
+                    printf("Nao foi possivel montar ufu fs em %s\n", arg[1]);
+                }
+                else
+                {
+                    printf("Pen drive montado com sucesso!\n");
+                }
+                free(arg);
             }
         }
         else
@@ -87,11 +84,8 @@ int main()
             printf("Digite Help nos comandos em caso de duvida\nExit para fechar\n");
         }
         printf("\n");
-        for (int i = 0; i < STR_MAX_SIZE; i++) //pra q isso ?
-        {
-            str[i] = '\0';
-            command[i] = '\0';
-        }
+        free(str);
+        free(command);
     }
     return 0;
 }

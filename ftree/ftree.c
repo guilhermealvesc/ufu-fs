@@ -6,16 +6,6 @@
 unsigned long djb2Hash(unsigned char *str);
 int sondagemLinear(int pos, int i);
 
-int getDate(time_t *t_epoch, char *str)
-{
-  if (!t_epoch || !str)
-    return 0;
-  struct tm *tm = localtime(t_epoch);
-  if (!tm)
-    return 0;
-  return strftime(str, MAX_LEN_TIME_STR, TIME_FORMAT, tm);
-}
-
 // Table makedir(Table caller) {
 //   Table tb = (Table) malloc(sizeof(struct table));
 //   int i;
