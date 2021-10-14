@@ -9,65 +9,88 @@
 #include "shellTADheader.h"
 #include "../ufufs/ufufs.h"
 
-int formatCommand(char *str)
-{
-    int i, j;
-    for (i = 0; str[i] != '\0'; i++)
-    {
-        if (str[i] == 39)
-        { // ' na tablea ascii
-            for (j = i; str[j] != 39; j++)
-            { //O que está entre aspas simples será os caminhos das pastas, não pode ser formatado
-                if (str[j] == '\0')
-                    return 0; //flag para caminho invalido
-            }
-        }
-        else if (str[i] > 96 && str[i] < 123)
-        {
-            str[i] = str[i] - 32; //deixa as letras maiusculas
-        }
+char **_getArg(char *line){
+  int bufsize = TOK_SIZE, j = 0;
+  char **tokens = malloc(bufsize * sizeof(char*));
+  char *token;
+
+  if (!tokens) {
+    printf("allocation error\n");
+    return NULL;
+  }
+
+  token = strtok(line, TOK_DELIM);
+  while (token != NULL) {
+    tokens[j] = token;
+    j++;
+
+    if (j >= bufsize) {
+      bufsize += TOK_SIZE;
+      tokens = realloc(tokens, bufsize * sizeof(char*));
+      if (!tokens) {
+        printf("lsh: allocation error\n");
+        return NULL;
+      }
     }
-    return 1; //formatou com sucesso
+
+    token = strtok(NULL, TOK_DELIM);
+  }
+  tokens[j] = NULL;
+  return tokens;
 }
 
-void getCommand(char *str, char *command)
-{
+char *_getCommand(char *str){
     int j = 0;
-    for (int i = 0; str[i] != '\0' && str[i] != 39; i++)
-    {
-        if (str[i] != ' ')
-        {
+    int bufsize = strlen(str);
+    char * command = malloc(sizeof(char) * bufsize);
+    if(!command) return NULL;
+
+    for (int i = 0; str[i] != '\0'; i++){
+        if (str[i] != ' '){
             command[j] = str[i];
+            command[j] = toupper(command[j]);
             j++;
+            if(str[i+1] == ' ') break;
         }
     }
+    command[j] = '\0';
+    return command;
 }
 
-void getArgument(char *str, char *arg1, char *arg2)
-{
-    int i, j;
-    arg1[0] = '\0';
+char *_readLine(){
+  int bufsize = MAX_STR_SIZE;
+  int j = 0;
+  char *buffer = malloc(sizeof(char) * bufsize);
+  int c;
 
-    for (i = 0; str[i] != '\0'; i++)
-    {
-        if (str[i] == 39)
-        {
-            int u = 0;
-            if (arg1[0] != '\0') //verifica se o primeiro já foi atribuido
-                for (j = i; str[j] != 39; j++)
-                {
-                    arg1[u] = str[j]; //atribui o primeiro argumento
-                }
-            else if (arg2 != NULL) //se existe o segundo, o atribui
-                for (j = i; str[j] != 39; j++)
-                {
-                    arg2[u] = str[j];
-                }
-            else
-                break; //se não existe o segundo, nao tem pq continuar o loop
-            i = j;     //faz com que 'i' acompanhe 'j' para o proximo loop
-        }
+  if (!buffer) {
+    printf("lsh: allocation error\n");
+    return NULL;
+  }
+
+  while (1) {
+    // le um caractere
+    c = getchar();
+
+    // se chegarmos a EOF, troca para \0 e retorna
+    if (c == EOF || c == '\n') {
+      buffer[j] = '\0';
+      return buffer;
+    } else {
+      buffer[j] = c;
     }
+    j++;
+
+    // realoca se excedemos o tamanho do buffer
+    if (j >= bufsize) {
+      bufsize += MAX_STR_SIZE;
+      buffer = realloc(buffer, bufsize);
+      if (!buffer) {
+        printf("lsh: allocation error\n");
+        return NULL;
+      }
+    }
+  }
 }
 
 void timeShell()
@@ -99,7 +122,7 @@ void cls()
 
 void helpShell()
 {
-    printf("Argumentos sempre entre ' ' \n");
+    printf("Comandos e argumentos separados por espaços \n");
     printf("Comandos:\n");
     printf("Time : mostra o tempo da maquina\n");
     printf("DONUT : hehe\n");

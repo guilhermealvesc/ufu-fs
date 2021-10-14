@@ -17,21 +17,15 @@
 int main()
 {
     cls();
-    char str[STR_MAX_SIZE], command[STR_MAX_SIZE];
+    char *str, *command, **arg;
     printf("Bem vindo ao mini-shell do UFU file system\n");
     printf("Digite Help nos comandos em caso de duvida\nExit para fechar\n");
     while (1)
     {
         printf("Digite seu comando -> ");
-        setbuf(stdin, NULL);
-        scanf("%[^\n]s", str);
+        str = _readLine();
 
-        if (!formatCommand(str))
-        {
-            printf("O argumento colocado parece invalido\n Tente novamente\n");
-            continue;
-        }
-        getCommand(str, command);
+        command = _getCommand(str);
 
         if (!strcmp(command, "HELP"))
         {
@@ -56,9 +50,8 @@ int main()
         else if (!strcmp(command, "CREATE"))
         {
             //----------------------------------------------------
-            char arg1[STR_MAX_SIZE];
-            getArgument(str, arg1, NULL);
-            int verifica = Shell_create(arg1);
+            arg = _getArg(str);
+            int verifica = Shell_create(arg[1]);
             if (verifica == -1)
             {
                 printf("Parametros invalidos\n");
@@ -77,17 +70,15 @@ int main()
         }
         else if (!strcmp(command, "OPEN"))
         {
-            char arg1[STR_MAX_SIZE];
-            getArgument(str, arg1, NULL);
-            Shell_open(arg1); //fazer os tratamentos de erros, etc
+            arg = _getArg(str);
+            Shell_open(arg[1]); //fazer os tratamentos de erros, etc
         }
         else if (!strcmp(command, "MOUNT"))
         {
-            char arg1[STR_MAX_SIZE];
-            getArgument(str, arg1, NULL);
-            if (!Shell_mount(arg1))
+            arg = _getArg(str);
+            if (!Shell_mount(arg[1]))
             {
-                printf("Nao foi possivel montar ufu fs em %s\n", arg1);
+                printf("Nao foi possivel montar ufu fs em %s\n", arg[1]);
             }
         }
         else
@@ -96,7 +87,7 @@ int main()
             printf("Digite Help nos comandos em caso de duvida\nExit para fechar\n");
         }
         printf("\n");
-        for (int i = 0; i < STR_MAX_SIZE; i++)
+        for (int i = 0; i < STR_MAX_SIZE; i++) //pra q isso ?
         {
             str[i] = '\0';
             command[i] = '\0';
