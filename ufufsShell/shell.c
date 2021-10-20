@@ -53,7 +53,15 @@ int main()
             {
                 printf("Nao foi possivel copiar\n");
             }
-        }
+        } else if(!strcmp(command,"CREATE")){
+            
+            arg = _getArg(str);
+            if(!Shell_create(arg))
+                printf("Falha ao criar\n");
+
+        } else if(!strcmp(command,"CLOSE")){
+            //achar o filedescriptor e jogar na ufufs_close();
+        }  
         else if (!strcmp(command, "LS"))
         {
             ls();
@@ -77,12 +85,11 @@ int main()
                 }
                 free(arg);
             }
-        }
-        else
-        {
+        } //----------- ERROU COMANDO ---------------------------------------------
+        else{
             printf("Comando desconhecido!\n");
             printf("Digite Help nos comandos em caso de duvida\nExit para fechar\n");
-        }
+        } //----------- ERROU COMANDO ---------------------------------------------
         printf("\n");
         free(str);
         free(command);

@@ -98,7 +98,7 @@ void ufufs_ls()
 
 int ufufs_create(const char *fname)
 {
-  // invalid params
+  // invalid params----------------------------------------------
   if (md.penFd == -1 || !fname || strlen(fname) > 10)
     return -1;
   int pos = -1, i;
@@ -120,13 +120,14 @@ int ufufs_create(const char *fname)
   //FAT FULL
   if (i == md.MBRI.BLOCKS)
     return 0;
-  const char filename[11];
+  //--------------------------------------------------------------
+  //const char filename[11]; comentado na ultima atualização, não estava sendo usado
   time_t t_time;
   time(&t_time);
   fat_flag_block(md.MBRI.FAT, i, BLOCK_END);
 
   md.MBRI.FILES_TABLE[i].iblock = i;
-  // strcpy(md.MBRI.FILES_TABLE[i].name, fname);
+  strcpy(md.MBRI.FILES_TABLE[i].name, fname); //pq tava comentado?
   md.MBRI.FILES_TABLE[i].create_date = t_time;
   md.MBRI.FILES_TABLE[i].last_access = t_time;
   md.MBRI.FILES_TABLE[i].bytes = 0;
@@ -238,8 +239,23 @@ off_t ufufs_seek(FileDescriptor fd, size_t offset)
   return md.fds[fd]->offset = bytesOffset;
 }
 
-int ufufs_close(FileDescriptor fd)
+void ufufs_close(FileDescriptor fd)
 {
+  if (md.penFd == -1 || fd < 0 || fd > MAX_FDS || !md.fds[fd])
+    return;
   // pega a estrutura do fd e salva usando a FAT
+  int i, pos = fd;
+  for(i = 0;i < md.MBRI.BLOCKS; i++){
+    if(md.fds[fd]->inode == md.MBRI.FILES_TABLE[i].iblock)
+      break;
+  }
+  time_t t_time;
+  time(&t_time);
+  md.MBRI.FILES_TABLE[i].bytes = md.fds[fd]->qntBytes;
+  md.MBRI.FILES_TABLE[i].last_access = t_time;
+  
   // apaga as estruturas bonitim
+  //"tirar o penFd e distribuir NULL"? seria isso ?
+  md.penFd = NULL;
+  md.fds[fd] = NULL;
 }

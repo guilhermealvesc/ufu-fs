@@ -191,6 +191,10 @@ int cp(char *src, char *dest)
   return 1;
 }
 
+void Shell_close(FileDescriptor fd){
+  ufufs_close(fd);
+}
+
 void Donut()
 { //nao testei ainda, cuidado
   float A = 0, B = 0;
