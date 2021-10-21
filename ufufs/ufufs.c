@@ -16,7 +16,7 @@ int getDate(time_t *t_epoch, char *str)
     return 0;
   return strftime(str, MAX_LEN_TIME_STR, TIME_FORMAT, tm);
 }
-/* 
+/*
 descomentar aki e apagar as mudanças que fiz a partir da linha 30 de ufufs.h em caso de erro
 // usa o fd do SO
 typedef struct
@@ -109,7 +109,7 @@ int ufufs_create(const char *fname)
     else if (!strcmp(md.MBRI.FILES_TABLE[i].name, fname))
       return -1;
   }
-  //FILES_TABLE FULL
+  // FILES_TABLE FULL
   if (pos == -1)
     return -1;
   for (i = 0; i < md.MBRI.BLOCKS; i++)
@@ -117,17 +117,17 @@ int ufufs_create(const char *fname)
     if (md.MBRI.FAT[i] == BLOCK_FREE)
       break;
   }
-  //FAT FULL
+  // FAT FULL
   if (i == md.MBRI.BLOCKS)
     return 0;
   //--------------------------------------------------------------
-  //const char filename[11]; comentado na ultima atualização, não estava sendo usado
+  // const char filename[11]; comentado na ultima atualização, não estava sendo usado
   time_t t_time;
   time(&t_time);
   fat_flag_block(md.MBRI.FAT, i, BLOCK_END);
 
-  md.MBRI.FILES_TABLE[i].iblock = i;
-  strcpy(md.MBRI.FILES_TABLE[i].name, fname); //pq tava comentado?
+  md.MBRI.FILES_TABLE[i].fat_entry = i;
+  strcpy(md.MBRI.FILES_TABLE[i].name, fname); // pq tava comentado?
   md.MBRI.FILES_TABLE[i].create_date = t_time;
   md.MBRI.FILES_TABLE[i].last_access = t_time;
   md.MBRI.FILES_TABLE[i].bytes = 0;
@@ -170,13 +170,13 @@ FileDescriptor ufufs_open(const char *filename)
     int resGetf = fat_getf_block(
         md.penFd,
         md.MBRI.FAT,
-        md.MBRI.FILES_TABLE[i].iblock,
+        md.MBRI.FILES_TABLE[i].fat_entry,
         i,
         (char *)md.fds[fd]->blocks + (BLOCK_SIZE * i));
     if (resGetf <= 0)
       return 0;
   }
-  md.fds[fd]->inode = md.MBRI.FILES_TABLE[i].iblock;
+  md.fds[fd]->file_entry = i;
   md.fds[fd]->qntBytes = md.MBRI.FILES_TABLE[i].bytes;
   md.fds[fd]->offset = 0;
   // retorna um inteiro (chave) para acessar arquivo
@@ -244,18 +244,26 @@ void ufufs_close(FileDescriptor fd)
   if (md.penFd == -1 || fd < 0 || fd > MAX_FDS || !md.fds[fd])
     return;
   // pega a estrutura do fd e salva usando a FAT
-  int i, pos = fd;
-  for(i = 0;i < md.MBRI.BLOCKS; i++){
-    if(md.fds[fd]->inode == md.MBRI.FILES_TABLE[i].iblock)
-      break;
+  int i, file_entry = md.fds[fd]->file_entry;
+
+  // salvar md.fds[fd]->blocks (blocos do arquivo alterado)
+  if (md.MBRI.FILES_TABLE[file_entry].bytes < md.fds[fd]->qntBytes)
+  {
+    // aumentar o arquivo na fat -> alterações na fat
   }
+
+  for (i = 0; i < GET_BLOCKS(md.fds[fd]->qntBytes); i++)
+  {
+    fat_writef_block(md.penFd, md.MBRI.FAT, md.MBRI.FILES_TABLE[file_entry].fat_entry, i, md.fds[fd]->blocks);
+  }
+
   time_t t_time;
   time(&t_time);
-  md.MBRI.FILES_TABLE[i].bytes = md.fds[fd]->qntBytes;
-  md.MBRI.FILES_TABLE[i].last_access = t_time;
-  
+  md.MBRI.FILES_TABLE[file_entry].bytes = md.fds[fd]->qntBytes;
+  md.MBRI.FILES_TABLE[file_entry].last_access = t_time;
+
   // apaga as estruturas bonitim
   //"tirar o penFd e distribuir NULL"? seria isso ?
-  md.penFd = NULL;
   md.fds[fd] = NULL;
+  return;
 }

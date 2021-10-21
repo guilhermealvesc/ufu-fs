@@ -9,7 +9,7 @@
 
 ### ufufs_format
 
-`gcc ufuFs_format.c utils/utils.c blockmanager/blockmanager.c faloc/faloc.c ufufs/ufufs.c -o main.out -lm -o `
+`gcc ufuFs_format.c utils/utils.c blockmanager/blockmanager.c faloc/faloc.c ufufs/ufufs.c -o main.out -lm`
 
 ### ufufs_shell
 

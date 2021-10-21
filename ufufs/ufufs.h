@@ -32,7 +32,7 @@ typedef struct
 
 typedef struct
 {
-  size_t inode;
+  size_t file_entry;
   off_t qntBytes;
   void *blocks;
   off_t offset;
