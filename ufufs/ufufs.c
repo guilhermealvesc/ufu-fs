@@ -101,7 +101,8 @@ int ufufs_create(const char *fname)
   // invalid params----------------------------------------------
   if (md.penFd == -1 || !fname || strlen(fname) > 10)
     return -1;
-  int pos = -1, i;
+  int pos = -1;
+  size_t i;
   for (i = md.MBRI.BLOCKS; i > 0; i--)
   {
     if (md.MBRI.FILES_TABLE[i].name == NULL)
@@ -127,7 +128,7 @@ int ufufs_create(const char *fname)
   fat_flag_block(md.MBRI.FAT, i, BLOCK_END);
 
   md.MBRI.FILES_TABLE[i].fat_entry = i;
-  strcpy(md.MBRI.FILES_TABLE[i].name, fname); // pq tava comentado?
+  strcpy(md.MBRI.FILES_TABLE[i].name, fname);
   md.MBRI.FILES_TABLE[i].create_date = t_time;
   md.MBRI.FILES_TABLE[i].last_access = t_time;
   md.MBRI.FILES_TABLE[i].bytes = 0;

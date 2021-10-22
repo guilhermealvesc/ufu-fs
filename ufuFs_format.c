@@ -41,28 +41,28 @@ int main(int argc, char **argv)
 
   printf("R_AREA_SIZE: %.1lfMB\nR_BLOCK_SIZE: %ld\nBLOCKS: %ld\n", R_AREA_SIZE / 1000000.0, R_BLOCK_SIZE, MBRI.BLOCKS);
 
-  //reserverd mem allocation proc
+  // reserverd mem allocation proc
   void *reserved_area;
   if ((reserved_area = calloc(BLOCK_SIZE, R_BLOCK_SIZE)) == NULL)
   {
     throw_e("Couldn't alloc reserved area..");
   }
   size_t offset = 0;
-  //writing MAGIC_N
-  //convertemos para char para andar de byte a byte na memoria
+  // writing MAGIC_N
+  // convertemos para char para andar de byte a byte na memoria
   memcpy(((char *)reserved_area) + offset, &MBRI.MAGIC_N, sizeof(MBRI.MAGIC_N));
   offset += sizeof(MBRI.MAGIC_N);
 
-  //writing BYTES
+  // writing BYTES
   memcpy(((char *)reserved_area) + offset, &MBRI.BYTES, sizeof(MBRI.BYTES));
   offset += sizeof(MBRI.BYTES);
 
-  //writing BLOCKS
+  // writing BLOCKS
   memcpy(((char *)reserved_area) + offset, &MBRI.BLOCKS, sizeof(MBRI.BLOCKS));
   offset += sizeof(MBRI.BLOCKS);
 
-  //writing FILES_TABLE - unecessary
-  //memset(((char *)reserved_area) + offset, MBRI.FILES_TABLE, bytesFiles);
+  // writing FILES_TABLE - unecessary
+  // memset(((char *)reserved_area) + offset, MBRI.FILES_TABLE, bytesFiles);
   offset += bytesFiles;
 
   for (int i = 0; i < R_BLOCK_SIZE; i++)
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
   // fat_show(MBRI.FAT, MBRI.BLOCKS);
 
-  //writing FAT
+  // writing FAT
   memcpy(((char *)reserved_area) + offset, MBRI.FAT, bytesFat);
 
   // memcpy(&MBRI.MAGIC_N, reserved_area, sizeof(MBRI.MAGIC_N));
@@ -87,6 +87,5 @@ int main(int argc, char **argv)
     }
   }
   close(penFd);
-  ufufs_mount(argv[1]);
   return 0;
 }
