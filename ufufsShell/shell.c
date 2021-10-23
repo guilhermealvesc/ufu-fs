@@ -38,10 +38,6 @@ int main()
         {
             cls();
         }
-        else if (!strcmp(command, "DONUT"))
-        {
-            Donut();
-        }
         else if (!strcmp(command, "CP"))
         {
             arg = _getArg(str);
