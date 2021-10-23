@@ -53,12 +53,12 @@ size_t *fat_init(int blocks)
   return fat;
 }
 
-int fat_getf_block(int pen_fd, size_t *fat, int inode, unsigned int index, void *buf)
+int fat_getf_block(int pen_fd, size_t *fat, int FE, unsigned int index, void *buf)
 {
-  if (pen_fd < 0 || !fat || inode < 0 || fat[inode] < BLOCK_END || index < 0 || buf == NULL)
+  if (pen_fd < 0 || !fat || FE < 0 || fat[FE] < BLOCK_END || index < 0 || buf == NULL)
     return 0;
   unsigned int i = 0;
-  int block = inode;
+  int block = FE;
   while (i < index && fat[block] > BLOCK_END)
   {
     block = fat[block];
@@ -71,12 +71,12 @@ int fat_getf_block(int pen_fd, size_t *fat, int inode, unsigned int index, void 
   return read_block(pen_fd, block, buf);
 }
 
-int fat_writef_block(int pen_fd, size_t *fat, int inode, unsigned int index, void *buf)
+int fat_writef_block(int pen_fd, size_t *fat, int FE, unsigned int index, void *buf)
 {
-  if (pen_fd < 0 || !fat || inode < 0 || fat[inode] < BLOCK_END || index < 0 || buf == NULL)
+  if (pen_fd < 0 || !fat || FE < 0 || fat[FE] < BLOCK_END || index < 0 || buf == NULL)
     return 0;
   unsigned int i = 0;
-  int block = inode;
+  int block = FE;
   while (i < index && fat[block] > BLOCK_END)
   {
     block = fat[block];
@@ -89,12 +89,12 @@ int fat_writef_block(int pen_fd, size_t *fat, int inode, unsigned int index, voi
   return write_block(pen_fd, block, buf);
 }
 
-int fat_delete_file(int pen_fd, size_t *fat, int inode)
+int fat_delete_file(int pen_fd, size_t *fat, int FE)
 {
-  if (pen_fd < 0 || !fat || inode < 0 || fat[inode] < BLOCK_END)
+  if (pen_fd < 0 || !fat || FE < 0 || fat[FE] < BLOCK_END)
     return 0;
   int block, block_aux;
-  for (block = inode; fat[block] != BLOCK_END; block = block_aux)
+  for (block = FE; fat[block] != BLOCK_END; block = block_aux)
   {
     block_aux = fat[block];
     fat[block] = BLOCK_FREE;
