@@ -99,4 +99,6 @@ int fat_delete_file(int pen_fd, size_t *fat, int FE)
     block_aux = fat[block];
     fat[block] = BLOCK_FREE;
   }
+  fat[block] = BLOCK_FREE;
+  return 1;
 }

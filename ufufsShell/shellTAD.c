@@ -113,14 +113,14 @@ char *_readLine()
 
 void timeShell()
 {
-  //Get current seconds in Epoch standard
+  // Get current seconds in Epoch standard
   time_t now = time(NULL);
   struct tm timeFormat;
   char temp[9];
-  //Get struct tm, which represents local time
+  // Get struct tm, which represents local time
   timeFormat = *localtime(&now);
-  /* 
-  Convert time, storing conversion in 'temp', 
+  /*
+  Convert time, storing conversion in 'temp',
   passing it's size, the format desired and
   tm structured representing local time
   */
@@ -147,7 +147,7 @@ void helpShell()
   printf("Create nome do arquivo: cria arquivo com nome especificado, erro caso ja exista, sem espacos em branco no nome, use _ caso necessario\n");
   printf("LS: lista todos os arquivos no diretorio\n");
   printf("Mount: realiza a montagem do pendrive\n");
-  //escrever todos depois
+  // escrever todos depois
 }
 
 int Shell_create(char *arg1)
@@ -186,14 +186,15 @@ int cp(char *src, char *dest)
   }
   else if (dest[0] == '#' && src[0] != '#')
   {
-    //copia do so para o pen drive
-    //mesma coisa só que com fopen e fwrite
+    // copia do so para o pen drive
+    // mesma coisa só que com fopen e fwrite
   }
   else
     return 0;
   return 1;
 }
 
-void Shell_close(FileDescriptor fd){
+void Shell_close(FileDescriptor fd)
+{
   ufufs_close(fd);
 }

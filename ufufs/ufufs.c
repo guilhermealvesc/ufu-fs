@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
 #include "./ufufs.h"
-#define MAX_FDS 30
-#define TIME_FORMAT "%d/%m/%Y, %H:%M:%S"
 
 int getDate(time_t *t_epoch, char *str)
 {
@@ -40,7 +39,7 @@ typedef struct
 } MountData;
 */
 
-MountData md = {-1, {}, NULL};
+MountData md = {-1, {-1, -1, -1, NULL, NULL}, NULL};
 
 int ufufs_mount(const char *filePath)
 {
@@ -98,6 +97,7 @@ void ufufs_ls()
 
 int ufufs_create(const char *fname)
 {
+
   // invalid params----------------------------------------------
   if (md.penFd == -1 || !fname || strlen(fname) > 10)
     return -1;
@@ -105,7 +105,7 @@ int ufufs_create(const char *fname)
   size_t i;
   for (i = md.MBRI.BLOCKS; i > 0; i--)
   {
-    if (md.MBRI.FILES_TABLE[i].name == NULL)
+    if (!strcmp(md.MBRI.FILES_TABLE[i].name, ""))
       pos = i;
     else if (!strcmp(md.MBRI.FILES_TABLE[i].name, fname))
       return -1;
@@ -132,7 +132,6 @@ int ufufs_create(const char *fname)
   md.MBRI.FILES_TABLE[i].create_date = t_time;
   md.MBRI.FILES_TABLE[i].last_access = t_time;
   md.MBRI.FILES_TABLE[i].bytes = 0;
-
   return 1;
 }
 

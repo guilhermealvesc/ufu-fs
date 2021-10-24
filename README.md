@@ -7,10 +7,20 @@
 
 ## Compile
 
+### ufuFs Shared Library
+
+`gcc -c -fpic ./ufufs/ufufs.c ./faloc/faloc.c ./blockmanager/blockmanager.c && gcc -shared ufufs.o faloc.o blockmanager.o -o libufufs.so`
+
 ### ufufs_format
 
-`gcc ufuFs_format.c utils/utils.c blockmanager/blockmanager.c faloc/faloc.c ufufs/ufufs.c -o main.out -lm`
+`gcc ufuFs_format.c utils/utils.c blockmanager/blockmanager.c faloc/faloc.c ufufs/ufufs.c -o ufuFs_format.out -lm`
 
 ### ufufs_shell
 
-`gcc ./ufufsShell/shell.c ./ufufsShell/shellTAD.c ./ufufs/ufufs.c ./faloc/faloc.c ./blockmanager/blockmanager.c -lm -o shell.out`
+`gcc -L/home/valtim/Documentos/prog/ufu-fs ./ufufsShell/shell.c ./ufufsShell/shellTAD.c -o shell.out -lufufs -lm`
+
+## Run
+
+### shell.out
+
+`sudo "LD_LIBRARY_PATH=/home/valtim/Documentos/prog/ufu-fs:$LD_LIBRARY_PATH" ./shell.out`

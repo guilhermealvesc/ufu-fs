@@ -87,5 +87,6 @@ int main(int argc, char **argv)
     }
   }
   close(penFd);
+  printf("Formatacao concluida...\n");
   return 0;
 }
