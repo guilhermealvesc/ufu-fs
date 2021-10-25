@@ -148,6 +148,8 @@ void helpShell()
   printf("Create nome do arquivo: cria arquivo com nome especificado, erro caso ja exista, sem espacos em branco no nome, use _ caso necessario\n");
   printf("LS: lista todos os arquivos no diretorio\n");
   printf("Mount: realiza a montagem do pendrive\n");
+  printf("CP: Copia arquivos, # antes do nome para o dentro do pen drive\n");
+  printf("Exemplo: dentro para fora = CP #dentro ./pasta/fora\n fora pra dentro = CP ./pasta/fora #dentro\n");
   // escrever todos depois
 }
 
@@ -179,7 +181,7 @@ int cp(char *src, char *dest)
 {
   if (src[0] == '#' && dest[0] != '#') // copia pra fora
   {
-    for (int i = 0; src[i] != '/0'; i++)
+    for (int i = 0; src[i] != '\0'; i++)
     {
       src[i] = src[i + 1]; // retira #
     }
@@ -212,7 +214,7 @@ int cp(char *src, char *dest)
     int fd = open(src, O_RDWR);
     if (fd < 0)
       return 0;
-    for (int i = 0; dest[i] != '/0'; i++)
+    for (int i = 0; dest[i] != '\0'; i++)
     {
       dest[i] = dest[i + 1]; // retira #
     }
