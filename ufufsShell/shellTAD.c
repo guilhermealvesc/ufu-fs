@@ -150,7 +150,6 @@ void helpShell()
   printf("Mount: realiza a montagem do pendrive\n");
   printf("CP: Copia arquivos, # antes do nome para o dentro do pen drive\n");
   printf("Exemplo: dentro para fora = CP #nome_dentro ./pasta/fora\n fora pra dentro = CP ./pasta/fora #nome_dentro\n");
-  // escrever todos depois
 }
 
 int Shell_create(char *arg1)
@@ -209,8 +208,6 @@ int cp(char *src, char *dest)
   }                                         //---------------------------------------------------------------------------------------
   else if (src[0] != '#' && dest[0] == '#') // copia pra dentro
   {
-    // copia do so para o pen drive
-    // dar create no arquivo, usar funções do SO pra abrir a source
     int fd = open(src, O_RDWR);
     if (fd < 0)
       return 0;
@@ -225,7 +222,7 @@ int cp(char *src, char *dest)
     {
       return 0;
     }
-    // pega quantidade de bytes do arquivo src
+
     size_t totalBytes = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     void *buffer = malloc(totalBytes);

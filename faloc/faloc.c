@@ -100,7 +100,6 @@ int fat_increase_blocks(int pen_fd, size_t *fat, int blocksFat, size_t FE, int b
         break;
     }
   }
-  // printf("Cheguei final da fat increase blocks\n");
   return 1;
 }
 
@@ -118,7 +117,7 @@ int fat_writef_block(int pen_fd, size_t *fat, size_t FE, unsigned int index, voi
   // foi para memória livre ou mbr
   if (block < BLOCK_END)
     return 0;
-  // block == BLOCK_END
+  
   return write_block(pen_fd, block, buf);
 }
 

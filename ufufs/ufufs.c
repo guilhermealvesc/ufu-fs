@@ -16,18 +16,6 @@ int getDate(time_t *t_epoch, char *str)
   return strftime(str, MAX_LEN_TIME_STR, TIME_FORMAT, tm);
 }
 
-/*
-descomentar aki e apagar as mudanças que fiz a partir da linha 30 de ufufs.h em caso de erro
-// usa o fd do SO
-typedef struct
-{
-  size_t inode;
-  off_t qntBytes;
-  void *blocks;
-  off_t offset;
-} FD;
-*/
-
 MountData md = {-1, "", {-1, -1, -1, NULL, NULL}, NULL};
 
 int updateMBR()
@@ -193,17 +181,16 @@ FileDescriptor ufufs_open(const char *filename)
     if (!md.fds[fd])
       break;
   }
-  // printf("entra aloc fd\n");
+  
   if ((md.fds[fd] = (FD *)malloc(sizeof(FD))) == NULL)
     return -1;
-  // printf("sai aloc fd\n");
-  // printf("entra aloc block\n");
+  
   size_t blocosArquivo = GET_BLOCKS(md.MBRI.FILES_TABLE[file_entry].bytes);
   if (blocosArquivo == 0)
     blocosArquivo = 1;
   if (!(md.fds[fd]->blocks = (void *)malloc(blocosArquivo * BLOCK_SIZE)))
     return -1;
-  // printf("sai aloc block\n");
+  
 
   size_t fat_entry = md.MBRI.FILES_TABLE[file_entry].fat_entry;
   
