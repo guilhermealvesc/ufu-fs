@@ -162,12 +162,12 @@ int Shell_mount(char *arg1)
 {
   return ufufs_mount(arg1);
 }
-
+/*
 FileDescriptor Shell_open(char *arg1)
 {
   return ufufs_open(arg1);
 }
-
+*/
 // int Shell_read(char *arg1, char *arg2){
 //     return ufufs_read(md.penFd, arg1, arg2);
 // }
@@ -248,9 +248,4 @@ int cp(char *src, char *dest)
   else
     return 0;
   return 1;
-}
-
-void Shell_close(FileDescriptor fd)
-{
-  ufufs_close(fd);
 }
