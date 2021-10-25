@@ -55,15 +55,6 @@ size_t *fat_init(int blocks)
 
 int fat_getf_block(int pen_fd, size_t *fat, size_t FE, unsigned int index, void *buf)
 {
-  printf("md.penFd: %d, md.MBRI.FAT: %p, md.MBRI.FILES_TABLE[i].fat_entry: %ld, i: %d, (char *)md.fds[fd]->blocks + (BLOCK_SIZE * i): %p\n",
-         pen_fd,
-         fat,
-         FE,
-         index,
-         buf);
-  printf("fat[FE]: %ld\n", fat[FE]);
-  printf("pen_fd < 0: %d || !fat: %d || FE < 0: %d || fat[FE] < BLOCK_END: %d || index < 0: %d || buf == NULL: %d\n",
-         pen_fd < 0, !fat, FE < 0, fat[FE] < BLOCK_END, index < 0, buf == NULL);
   if (pen_fd < 0 || !fat || FE < 0 || fat[FE] == BLOCK_MBR || fat[FE] == BLOCK_FREE || index < 0 || buf == NULL)
   {
     printf("paramentos invalidos\n");
@@ -71,17 +62,14 @@ int fat_getf_block(int pen_fd, size_t *fat, size_t FE, unsigned int index, void 
   }
   unsigned int i = 0;
   int block = FE;
-  printf("entra iteração fat\n");
   while (i < index && fat[block] > BLOCK_END)
   {
     block = fat[block];
     i++;
   }
   // foi para memória livre ou mbr
-  printf("sai iteração fat\n");
   if (block < BLOCK_END)
     return 0;
-  printf("not block end\n");
 
   // block == BLOCK_END
   return read_block(pen_fd, block, buf);

@@ -223,7 +223,6 @@ int cp(char *src, char *dest)
     FileDescriptor ufufFs_fd = ufufs_open(dest);
     if (ufufFs_fd == -1)
     {
-      printf("Erro na ufuFS_open.\n");
       return 0;
     }
     // pega quantidade de bytes do arquivo src
@@ -232,17 +231,14 @@ int cp(char *src, char *dest)
     void *buffer = malloc(totalBytes);
     if (!buffer)
     {
-      printf("Erro maloc buffer.\n");
       return 0;
     }
     if (read(fd, buffer, totalBytes) < 0)
     {
-      printf("Erro no read.\n");
       return 0;
     }
     if (!ufufs_write(ufufFs_fd, buffer, totalBytes))
     {
-      printf("Erro no ufufs_write.\n");
       return 0;
     }
     close(fd);
