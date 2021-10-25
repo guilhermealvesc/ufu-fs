@@ -1,9 +1,0 @@
-Dúvidas - Rivalino
-
-1. Em questão de performance, pode ser usadas funções recursivas 
-(estamos usando na tabela FAT para poder ler um arquivo)? 
-
-2. Data pode ser antes de epoch?
-
-ufuFs_shell //
-quando aberto, irá abrir o pen drive com a syscall open (rota /dev/sdc1)

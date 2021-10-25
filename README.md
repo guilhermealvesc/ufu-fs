@@ -21,6 +21,18 @@
 
 ## Run
 
+### ufuFs_format.out
+
+`sudo ./ufuFs_format.out /dev/sdc1`
+
 ### shell.out
 
 `sudo "LD_LIBRARY_PATH=/home/valtim/Documentos/prog/ufu-fs:$LD_LIBRARY_PATH" ./shell.out`
+
+## Compile all, Format and Run Shell
+
+`gcc -c -fpic ./ufufs/ufufs.c ./faloc/faloc.c ./blockmanager/blockmanager.c && gcc -shared ufufs.o faloc.o blockmanager.o -o libufufs.so && gcc ufuFs_format.c utils/utils.c blockmanager/blockmanager.c faloc/faloc.c ufufs/ufufs.c -o ufuFs_format.out -lm && gcc -L/home/valtim/Documentos/prog/ufu-fs ./ufufsShell/shell.c ./ufufsShell/shellTAD.c -o shell.out -lufufs -lm && sudo ./ufuFs_format.out /dev/sdc1 &&sudo "LD_LIBRARY_PATH=/home/valtim/Documentos/prog/ufu-fs:$LD_LIBRARY_PATH" ./shell.out`
+
+## Compile all and Run Shell
+
+`gcc -c -fpic ./ufufs/ufufs.c ./faloc/faloc.c ./blockmanager/blockmanager.c && gcc -shared ufufs.o faloc.o blockmanager.o -o libufufs.so && gcc -L/home/valtim/Documentos/prog/ufu-fs ./ufufsShell/shell.c ./ufufsShell/shellTAD.c -o shell.out -lufufs -lm && sudo "LD_LIBRARY_PATH=/home/valtim/Documentos/prog/ufu-fs:$LD_LIBRARY_PATH" ./shell.out`

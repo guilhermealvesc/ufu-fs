@@ -62,10 +62,6 @@ int main()
                 printf("Pen Drive cheio\n");
             }
         }
-        else if (!strcmp(command, "CLOSE"))
-        {
-            // achar o filedescriptor e jogar na ufufs_close();
-        }
         else if (!strcmp(command, "LS"))
         {
             ls();

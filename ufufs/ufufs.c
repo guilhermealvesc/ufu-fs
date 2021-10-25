@@ -71,6 +71,7 @@ int updateMBR()
   }
   close(md.penFd);
   md.penFd = open(md.filePath, O_RDWR);
+  free(reserved_area);
   return 1;
 }
 
@@ -134,9 +135,9 @@ int ufufs_create(const char *fname)
   // invalid params----------------------------------------------
   if (md.penFd == -1 || !fname || strlen(fname) > 10)
     return -1;
-  int pos = -1;
+  size_t pos = -1;
   size_t i;
-  for (i = md.MBRI.BLOCKS; i > 0; i--)
+  for (i = 0; i < md.MBRI.BLOCKS; i++)
   {
     if (!strcmp(md.MBRI.FILES_TABLE[i].name, ""))
       pos = i;
@@ -155,16 +156,16 @@ int ufufs_create(const char *fname)
   if (i == md.MBRI.BLOCKS)
     return 0;
   //--------------------------------------------------------------
-  // const char filename[11]; comentado na ultima atualização, não estava sendo usado
+  // const char filename[11];
   time_t t_time;
   time(&t_time);
   fat_flag_block(md.MBRI.FAT, i, BLOCK_END);
 
-  md.MBRI.FILES_TABLE[i].fat_entry = i;
-  strcpy(md.MBRI.FILES_TABLE[i].name, fname);
-  md.MBRI.FILES_TABLE[i].create_date = t_time;
-  md.MBRI.FILES_TABLE[i].last_access = t_time;
-  md.MBRI.FILES_TABLE[i].bytes = 0;
+  md.MBRI.FILES_TABLE[pos].fat_entry = i;
+  strcpy(md.MBRI.FILES_TABLE[pos].name, fname);
+  md.MBRI.FILES_TABLE[pos].create_date = t_time;
+  md.MBRI.FILES_TABLE[pos].last_access = t_time;
+  md.MBRI.FILES_TABLE[pos].bytes = 0;
   return updateMBR();
 }
 
@@ -179,39 +180,61 @@ FileDescriptor ufufs_open(const char *filename)
   // olha na tabela de metadados se o arquivo existe
   if (md.penFd == -1)
     return -1;
-  int i;
-  for (i = 0; i < md.MBRI.BLOCKS; i++)
+  size_t file_entry;
+  for (file_entry = 0; file_entry < md.MBRI.BLOCKS; file_entry++)
   {
-    if (strcmp(md.MBRI.FILES_TABLE[i].name, filename) == 0)
+    if (strcmp(md.MBRI.FILES_TABLE[file_entry].name, filename) == 0)
       break;
   }
-  if (i >= md.MBRI.BLOCKS)
+  if (file_entry >= md.MBRI.BLOCKS)
     return -1;
-
   int fd;
   for (fd = 0; fd < MAX_FDS; fd++)
   {
     if (!md.fds[fd])
       break;
   }
-
-  size_t blocosArquivo = GET_BLOCKS(md.MBRI.FILES_TABLE[i].bytes);
-  if (!(md.fds[fd]->blocks = (int *)malloc(blocosArquivo * BLOCK_SIZE)))
+  // printf("entra aloc fd\n");
+  if ((md.fds[fd] = (FD *)malloc(sizeof(FD))) == NULL)
     return -1;
-  for (i = 0; i < blocosArquivo; i++)
+  // printf("sai aloc fd\n");
+  // printf("entra aloc block\n");
+  size_t blocosArquivo = GET_BLOCKS(md.MBRI.FILES_TABLE[file_entry].bytes);
+  if (blocosArquivo == 0)
+    blocosArquivo = 1;
+  if (!(md.fds[fd]->blocks = (void *)malloc(blocosArquivo * BLOCK_SIZE)))
+    return -1;
+  // printf("sai aloc block\n");
+
+  printf("entra fat_getf_block\n");
+  size_t fat_entry = md.MBRI.FILES_TABLE[file_entry].fat_entry;
+  printf("fat_entry: %ld\n", fat_entry);
+  for (int i = 0; i < blocosArquivo; i++)
   {
+    // printf("md.penFd: %d, md.MBRI.FAT: %p, md.MBRI.FILES_TABLE[i].fat_entry: %ld, i: %d, (char *)md.fds[fd]->blocks + (BLOCK_SIZE * i): %p\n",
+    //        md.penFd,
+    //        md.MBRI.FAT,
+    //        fat_entry,
+    //        i,
+    //        (char *)md.fds[fd]->blocks + (BLOCK_SIZE * i));
     int resGetf = fat_getf_block(
         md.penFd,
         md.MBRI.FAT,
-        md.MBRI.FILES_TABLE[i].fat_entry,
+        fat_entry,
         i,
         (char *)md.fds[fd]->blocks + (BLOCK_SIZE * i));
     if (resGetf <= 0)
+    {
+      printf("erro fat_getf_block\n");
       return -1;
+    }
   }
-  md.fds[fd]->file_entry = i;
-  md.fds[fd]->qntBytes = md.MBRI.FILES_TABLE[i].bytes;
+  // printf("sai fat_getf_block\n");
+
+  md.fds[fd]->file_entry = file_entry;
+  md.fds[fd]->qntBytes = md.MBRI.FILES_TABLE[file_entry].bytes;
   md.fds[fd]->offset = 0;
+  // printf("Fd pae: %d\n", fd);
   // retorna um inteiro (chave) para acessar arquivo
   return fd;
 }
@@ -239,17 +262,28 @@ int ufufs_write(FileDescriptor fd, void *buf, size_t count)
 {
   // invalid params
   if (md.penFd == -1 || fd < 0 || fd > MAX_FDS || !md.fds[fd] || !buf || count < 0)
+  {
+    printf("parametros ufu_fs_write invalidos\n");
     return 0;
+  }
 
   if (md.fds[fd]->qntBytes < md.fds[fd]->offset)
+  {
+    printf("erro EOF\n");
     return EOF;
+  }
 
   size_t bytesOffset = md.fds[fd]->offset;
   if (bytesOffset + count > md.fds[fd]->qntBytes)
   {
-    void *newBlocks = reallocarray(md.fds[fd]->blocks, GET_BLOCKS(md.fds[fd]->qntBytes + count), BLOCK_SIZE);
+    size_t newQntBlocs = GET_BLOCKS(md.fds[fd]->qntBytes + count) == 0 ? 1 : GET_BLOCKS(md.fds[fd]->qntBytes + count);
+    // printf("md.fds[fd]->blocks: %p, newBlocks: %ld, BLOCK_SIZE: %d\n", md.fds[fd]->blocks, newQntBlocs, BLOCK_SIZE);
+    void *newBlocks = reallocarray(md.fds[fd]->blocks, newQntBlocs, BLOCK_SIZE);
     if (!newBlocks)
+    {
+      // printf("Erro newblocks\n");
       return 0;
+    }
     md.fds[fd]->blocks = newBlocks;
     md.fds[fd]->qntBytes += count;
   }
@@ -272,10 +306,10 @@ off_t ufufs_seek(FileDescriptor fd, size_t offset)
   return md.fds[fd]->offset = bytesOffset;
 }
 
-void ufufs_close(FileDescriptor fd)
+int ufufs_close(FileDescriptor fd)
 {
   if (md.penFd == -1 || fd < 0 || fd > MAX_FDS || !md.fds[fd])
-    return;
+    return 0;
   // pega a estrutura do fd e salva usando a FAT
   int i;
   size_t file_entry = md.fds[fd]->file_entry;
@@ -283,25 +317,32 @@ void ufufs_close(FileDescriptor fd)
   // salvar md.fds[fd]->blocks (blocos do arquivo alterado)
   if (md.MBRI.FILES_TABLE[file_entry].bytes < md.fds[fd]->qntBytes)
   {
+    printf("increasing blocks\n");
     size_t extraBlocks = GET_BLOCKS(md.fds[fd]->qntBytes) - GET_BLOCKS(md.MBRI.FILES_TABLE[file_entry].bytes);
+    printf("qntIncreasedBlocks: %ld\n", extraBlocks);
+
     // aumentar o arquivo na fat -> alterações na fat
     fat_increase_blocks(md.penFd, md.MBRI.FAT, md.MBRI.BLOCKS, fat_entry, extraBlocks);
   }
 
   for (i = 0; i < GET_BLOCKS(md.fds[fd]->qntBytes); i++)
   {
-    fat_writef_block(md.penFd, md.MBRI.FAT, fat_entry, i, (char *)md.fds[fd]->blocks + (BLOCK_SIZE * i));
+    if (fat_writef_block(md.penFd, md.MBRI.FAT, fat_entry, i, (char *)md.fds[fd]->blocks + (BLOCK_SIZE * i)))
+    {
+      return 0;
+    }
   }
 
   time_t t_time;
   time(&t_time);
   md.MBRI.FILES_TABLE[file_entry].bytes = md.fds[fd]->qntBytes;
   md.MBRI.FILES_TABLE[file_entry].last_access = t_time;
-  // apaga as estruturas bonitim
-  //"tirar o penFd e distribuir NULL"? seria isso ?
+
+  free(md.fds[fd]->blocks);
+  free(md.fds[fd]);
   md.fds[fd] = NULL;
   updateMBR();
-  return;
+  return 1;
 }
 
 size_t ufufs_get_size(FileDescriptor fd)

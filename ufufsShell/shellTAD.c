@@ -149,7 +149,7 @@ void helpShell()
   printf("LS: lista todos os arquivos no diretorio\n");
   printf("Mount: realiza a montagem do pendrive\n");
   printf("CP: Copia arquivos, # antes do nome para o dentro do pen drive\n");
-  printf("Exemplo: dentro para fora = CP #dentro ./pasta/fora\n fora pra dentro = CP ./pasta/fora #dentro\n");
+  printf("Exemplo: dentro para fora = CP #nome_dentro ./pasta/fora\n fora pra dentro = CP ./pasta/fora #nome_dentro\n");
   // escrever todos depois
 }
 
@@ -185,26 +185,26 @@ int cp(char *src, char *dest)
     {
       src[i] = src[i + 1]; // retira #
     }
-    FileDescriptor to_copy_file_FD = ufufs_open(src);
-    if (to_copy_file_FD < 0)
+    FileDescriptor ufufFs_fd = ufufs_open(src);
+    if (ufufFs_fd < 0)
       return 0;
     int fd = open(dest, O_RDWR);
 
     if (fd < 0)
       return 0;
 
-    size_t totalBytes = ufufs_get_size(to_copy_file_FD);
+    size_t totalBytes = ufufs_get_size(ufufFs_fd);
 
     void *buffer = malloc(totalBytes);
     if (!buffer)
       return 0;
-    if (!ufufs_read(to_copy_file_FD, buffer, totalBytes))
+    if (!ufufs_read(ufufFs_fd, buffer, totalBytes))
       return 0;
-    if (write(fd, buffer, totalBytes))
+    if (!write(fd, buffer, totalBytes))
       return 0;
-
     close(fd);
-    ufufs_close(to_copy_file_FD);
+    ufufs_close(ufufFs_fd);
+    free(buffer);
     return 1;
   }                                         //---------------------------------------------------------------------------------------
   else if (src[0] != '#' && dest[0] == '#') // copia pra dentro
@@ -218,25 +218,36 @@ int cp(char *src, char *dest)
     {
       dest[i] = dest[i + 1]; // retira #
     }
-    if (ufufs_create(dest) < 1)
-      return 0; // falha ao criar
 
-    FileDescriptor to_copy_file_FD = ufufs_open(dest);
-    if (to_copy_file_FD < 0)
+    ufufs_create(dest);
+    FileDescriptor ufufFs_fd = ufufs_open(dest);
+    if (ufufFs_fd == -1)
+    {
+      printf("Erro na ufuFS_open.\n");
       return 0;
-
-    size_t totalBytes = ufufs_get_size(to_copy_file_FD);
-
+    }
+    // pega quantidade de bytes do arquivo src
+    size_t totalBytes = lseek(fd, 0, SEEK_END);
+    lseek(fd, 0, SEEK_SET);
     void *buffer = malloc(totalBytes);
     if (!buffer)
+    {
+      printf("Erro maloc buffer.\n");
       return 0;
-    if (!ufufs_read(to_copy_file_FD, buffer, totalBytes))
+    }
+    if (read(fd, buffer, totalBytes) < 0)
+    {
+      printf("Erro no read.\n");
       return 0;
-    if (write(fd, buffer, totalBytes))
+    }
+    if (!ufufs_write(ufufFs_fd, buffer, totalBytes))
+    {
+      printf("Erro no ufufs_write.\n");
       return 0;
-
+    }
     close(fd);
-    ufufs_close(to_copy_file_FD);
+    ufufs_close(ufufFs_fd);
+    free(buffer);
   }
   else
     return 0;

@@ -20,7 +20,7 @@ extern int ufufs_read(FileDescriptor fd, void *buf, size_t count);
 
 extern int ufufs_write(FileDescriptor fd, void *buf, size_t count);
 
-extern void ufufs_close(FileDescriptor fd);
+extern int ufufs_close(FileDescriptor fd);
 
 extern off_t ufufs_seek(FileDescriptor fd, size_t offset);
 
