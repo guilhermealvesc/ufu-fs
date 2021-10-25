@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <dirent.h>
+#include <fcntl.h>
 //#include <sys/syscall.h>
 #include "shellTADheader.h"
 #include "../ufufs/ufufs.h"
@@ -176,18 +177,64 @@ void ls()
 
 int cp(char *src, char *dest)
 {
-  if (src[0] == '#' && dest[0] != '#')
+  if (src[0] == '#' && dest[0] != '#') // copia pra fora
   {
-    // olha se já existe
-    // se não existe, cria metadados
-    // ufufs_open
-    // ufufs_write no file descriptor e bala
-    // copia do nosso pen drive para dest
-  }
-  else if (dest[0] == '#' && src[0] != '#')
+    for (int i = 0; src[i] != '/0'; i++)
+    {
+      src[i] = src[i + 1]; // retira #
+    }
+    FileDescriptor to_copy_file_FD = ufufs_open(src);
+    if (to_copy_file_FD < 0)
+      return 0;
+    int fd = open(dest, O_RDWR);
+
+    if (fd < 0)
+      return 0;
+
+    size_t totalBytes = ufufs_get_size(to_copy_file_FD);
+
+    void *buffer = malloc(totalBytes);
+    if (!buffer)
+      return 0;
+    if (!ufufs_read(to_copy_file_FD, buffer, totalBytes))
+      return 0;
+    if (write(fd, buffer, totalBytes))
+      return 0;
+
+    close(fd);
+    ufufs_close(to_copy_file_FD);
+    return 1;
+  }                                         //---------------------------------------------------------------------------------------
+  else if (src[0] != '#' && dest[0] == '#') // copia pra dentro
   {
     // copia do so para o pen drive
-    // mesma coisa só que com fopen e fwrite
+    // dar create no arquivo, usar funções do SO pra abrir a source
+    int fd = open(src, O_RDWR);
+    if (fd < 0)
+      return 0;
+    for (int i = 0; dest[i] != '/0'; i++)
+    {
+      dest[i] = dest[i + 1]; // retira #
+    }
+    if (ufufs_create(dest) < 1)
+      return 0; // falha ao criar
+
+    FileDescriptor to_copy_file_FD = ufufs_open(dest);
+    if (to_copy_file_FD < 0)
+      return 0;
+
+    size_t totalBytes = ufufs_get_size(to_copy_file_FD);
+
+    void *buffer = malloc(totalBytes);
+    if (!buffer)
+      return 0;
+    if (!ufufs_read(to_copy_file_FD, buffer, totalBytes))
+      return 0;
+    if (write(fd, buffer, totalBytes))
+      return 0;
+
+    close(fd);
+    ufufs_close(to_copy_file_FD);
   }
   else
     return 0;

@@ -24,6 +24,8 @@ extern void ufufs_close(FileDescriptor fd);
 
 extern off_t ufufs_seek(FileDescriptor fd, size_t offset);
 
+extern size_t ufufs_get_size(FileDescriptor fd);
+
 typedef struct file *FILES;
 struct file
 {
@@ -54,6 +56,7 @@ typedef struct
 typedef struct
 {
   int penFd;
+  char filePath[50];
   MBR MBRI;
   FD *fds[MAX_FDS];
 } MountData;

@@ -54,8 +54,13 @@ int main()
         {
 
             arg = _getArg(str);
-            if (!Shell_create(arg[1]))
-                printf("Falha ao criar\n");
+            int v = Shell_create(arg[1]);
+            if (v == -1)
+                printf("Falha ao criar!\n");
+            else if (v == 0)
+            {
+                printf("Pen Drive cheio\n");
+            }
         }
         else if (!strcmp(command, "CLOSE"))
         {

@@ -26,7 +26,7 @@ int main(int argc, char **argv)
   // MBR initialization
   MBR MBRI = {MAGIC_NUM, VOL_SIZE, GET_BLOCKS(VOL_SIZE), NULL, NULL};
 
-  // ALOCAR FILES
+  // ALOCAR FILES_TABLE
   size_t bytesFiles = MBRI.BLOCKS * sizeof(struct file);
   if (!(MBRI.FILES_TABLE = (FILES)malloc(bytesFiles)))
     throw_e("Couldn't alloc Files Table...");
@@ -70,14 +70,8 @@ int main(int argc, char **argv)
     fat_flag_block(MBRI.FAT, i, BLOCK_MBR);
   }
 
-  // fat_show(MBRI.FAT, MBRI.BLOCKS);
-
   // writing FAT
   memcpy(((char *)reserved_area) + offset, MBRI.FAT, bytesFat);
-
-  // memcpy(&MBRI.MAGIC_N, reserved_area, sizeof(MBRI.MAGIC_N));
-
-  // printf("MAGIC_N: %d\n", MBRI.MAGIC_N);
 
   for (int i = 0; i < R_BLOCK_SIZE; i++)
   {

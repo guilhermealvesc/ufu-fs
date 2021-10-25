@@ -71,6 +71,28 @@ int fat_getf_block(int pen_fd, size_t *fat, int FE, unsigned int index, void *bu
   return read_block(pen_fd, block, buf);
 }
 
+int fat_increase_blocks(int pen_fd, size_t *fat, int blocksFat, int FE, int blocks)
+{
+  int block = FE, i, j;
+  while (fat[block] > BLOCK_END)
+  {
+    block = fat[block];
+  }
+  // block == indice na fat do fim do arquivo antes de aumentar
+  for (i = 0; i < blocks; i++)
+  {
+    for (j = 0; j < blocksFat; j++)
+    {
+      if (fat[j] == BLOCK_FREE)
+      {
+        fat[block] = j;
+        fat[j] = BLOCK_END;
+        block = j;
+      }
+    }
+  }
+}
+
 int fat_writef_block(int pen_fd, size_t *fat, int FE, unsigned int index, void *buf)
 {
   if (pen_fd < 0 || !fat || FE < 0 || fat[FE] < BLOCK_END || index < 0 || buf == NULL)

@@ -14,3 +14,6 @@ int fat_writef_block(int pen_fd, size_t *fat, int FE, unsigned int index, void *
 
 // delete file from fat
 int fat_delete_file(int pen_fd, size_t *fat, int FE);
+
+// increase filesize in fat
+int fat_increase_blocks(int pen_fd, size_t *fat, int blocksFat, int FE, int blocks);
