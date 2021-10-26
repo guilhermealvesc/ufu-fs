@@ -147,7 +147,7 @@ void helpShell()
   printf("CLS: limpa a tela\n");
   printf("Create nome do arquivo: cria arquivo com nome especificado, erro caso ja exista, sem espacos em branco no nome, use _ caso necessario\n");
   printf("LS: lista todos os arquivos no diretorio\n");
-  printf("Mount: realiza a montagem do pendrive\n");
+  printf("MOUNT: realiza a montagem do pendrive, o argumento eh o caminho do dispositivo pen drive na pasta de dispositivos fisicos do linux, por exemplo, ./dev/sdc1\n");
   printf("CP: Copia arquivos, # antes do nome para o dentro do pen drive\n");
   printf("Exemplo: dentro para fora = CP #nome_dentro ./pasta/fora\n fora pra dentro = CP ./pasta/fora #nome_dentro\n");
 }
